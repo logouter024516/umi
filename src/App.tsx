@@ -376,7 +376,7 @@ export default function App() {
             {isConnected ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                Supabase 온라인
+                온라인
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-400 text-xs font-semibold">
@@ -405,7 +405,7 @@ export default function App() {
             {loadingModel ? (
               <div className="h-64 flex flex-col items-center justify-center bg-slate-950/50 rounded-2xl border border-dashed border-white/10 gap-3">
                 <div className="w-8 h-8 rounded-full border-4 border-cyan-400/30 border-t-cyan-400 animate-spin"></div>
-                <p className="text-xs text-slate-400">Teachable Machine 인공지능 로딩 중...</p>
+                <p className="text-xs text-slate-400">인공지능 로딩 중...</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -510,7 +510,7 @@ export default function App() {
             <form onSubmit={handleSubmitPost} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-slate-400 font-medium">제안자 서명</label>
+                  <label className="text-xs text-slate-400 font-medium">제안자 성명</label>
                   <input
                     type="text"
                     placeholder="예: 그린 디자이너"
@@ -520,7 +520,7 @@ export default function App() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-slate-400 font-medium">데이터 자동 동기화</label>
+                  <label className="text-xs text-slate-400 font-medium">분석 정보</label>
                   <input
                     type="text"
                     disabled
@@ -557,7 +557,7 @@ export default function App() {
                   type="submit"
                   className="bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 hover:opacity-90 active:scale-98 text-slate-950 font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.15)]"
                 >
-                  {isConnected ? "🚀 실시간 등록 (Supabase)" : "💡 로컬 등록 (데모 저장)"}
+                  {isConnected ? "등록" : "임시 저장"}
                 </button>
               </div>
             </form>
