@@ -9,109 +9,57 @@ import Leaderboard from './components/Leaderboard';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-const FALLBACK_POSTS: Post[] = [
-  {
-    id: 1,
-    author: '그린시티 연구원',
-    title: '쿨루프 설치 지원 사업 제안',
-    content: '건물 옥상에 햇빛을 반사하는 차열 페인트를 도포하면 실내 온도 2~3도 감소 효과가 있습니다.',
-    status: '열섬 지역 판정 (89%)',
-    location: '3-1',
-    category: '쿨루프',
-    image_url: '',
-    likes: 12,
-    comments: [
-      { id: 1, post_id: 1, author: '김환경', text: '실제로 저희 집 옥상에 칠해봤는데 에어컨 사용량이 확실히 줄었습니다.' },
-      { id: 2, post_id: 1, author: '이지혜', text: '상가 건물들도 필수적으로 도입하면 좋겠어요.' },
-    ],
-    created_at: '2026-07-08T12:00:00Z',
-  },
-  {
-    id: 2,
-    author: '에코디자이너',
-    title: '투수성 잔디 블록 주차장 활성화 방안',
-    content: '아스팔트 포장은 주간의 열을 강하게 축적해 야간 열섬을 유발합니다. 잔디 블록으로 개선하면 열기를 효과적으로 증발시킬 수 있습니다.',
-    status: '열섬 지역 판정 (94%)',
-    location: '운동장',
-    category: '바닥재',
-    image_url: '',
-    likes: 8,
-    comments: [
-      { id: 3, post_id: 2, author: '박지성', text: '미관상으로도 아름답고 빗물 순환에도 좋을 것 같습니다.' },
-    ],
-    created_at: '2026-07-07T15:30:00Z',
-  },
-];
+const headers = () => ({
+  'Content-Type': 'application/json',
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  Prefer: 'return=representation',
+});
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('board');
-  const [posts, setPosts] = useState<Post[]>(FALLBACK_POSTS);
-  const [isConnected, setIsConnected] = useState(false);
-  const [supabaseClient, setSupabaseClient] = useState<ReturnType<typeof createClient> | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [analysisResult, setAnalysisResult] = useState('');
   const [notifications, setNotifications] = useState<string[]>([]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function createClient(url: string, key: string): any {
-    return window.supabase.createClient(url, key);
-  }
-
-  const fetchPosts = useCallback(async (client?: ReturnType<typeof createClient>) => {
-    const active = client || supabaseClient;
-    if (!active) return;
+  const fetchPosts = useCallback(async () => {
+    if (!hasSupabase) return;
     try {
-      const { data: postsData, error: postsError } = await active
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (postsError) throw postsError;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/posts?select=*&order=created_at.desc`,
+        { headers: headers() }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const postsData: Post[] = await res.json();
 
-      const { data: commentsData, error: commentsError } = await active
-        .from('comments')
-        .select('*');
-      if (commentsError) throw commentsError;
+      const resComments = await fetch(
+        `${SUPABASE_URL}/rest/v1/comments?select=*`,
+        { headers: headers() }
+      );
+      if (!resComments.ok) throw new Error(await resComments.text());
+      const commentsData: Comment[] = await resComments.json();
 
-      const structured = (postsData as Post[] || []).map((p) => ({
+      const structured = postsData.map((p) => ({
         ...p,
-        comments: (commentsData as Comment[] || []).filter((c) => c.post_id === p.id),
+        comments: commentsData.filter((c) => c.post_id === p.id),
       }));
-      setPosts(structured.length > 0 ? structured : FALLBACK_POSTS);
+      setPosts(structured);
     } catch (err) {
       console.error('데이터 로드 오류:', err);
     }
-  }, [supabaseClient]);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-    script.async = true;
-    script.onload = () => {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-        try {
-          const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          setSupabaseClient(client);
-          setIsConnected(true);
-          fetchPosts(client);
-        } catch (err) {
-          console.error('Supabase 연결 실패:', err);
-        }
-      }
-    };
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
   }, []);
 
-  // Realtime notifications via polling (Supabase realtime channel would need additional setup)
   useEffect(() => {
-    if (!isConnected || !supabaseClient) return;
-    const interval = setInterval(() => {
-      fetchPosts();
-    }, 30000);
+    fetchPosts();
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    if (!hasSupabase) return;
+    const interval = setInterval(fetchPosts, 30000);
     return () => clearInterval(interval);
-  }, [isConnected, supabaseClient, fetchPosts]);
+  }, [fetchPosts]);
 
   const handleSubmitPost = async (post: {
     author: string;
@@ -122,73 +70,57 @@ export default function App() {
     category: string;
     image_url: string;
   }) => {
-    if (isConnected && supabaseClient) {
-      try {
-        const { error } = await supabaseClient.from('posts').insert([{ ...post, likes: 0 }]);
-        if (error) throw error;
-        await fetchPosts();
-        alert('등록 완료');
-      } catch (err) {
-        console.error('등록 오류:', err);
-        alert('등록 실패');
-      }
-    } else {
-      const localPost: Post = {
-        id: Date.now(),
-        ...post,
-        likes: 0,
-        comments: [],
-        created_at: new Date().toISOString(),
-      };
-      setPosts([localPost, ...posts]);
-      alert('임시 저장 완료');
+    if (!hasSupabase) {
+      alert('Supabase 연결 정보가 없습니다.');
+      return;
+    }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/posts`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ ...post, likes: 0 }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      await fetchPosts();
+      alert('등록 완료');
+    } catch (err) {
+      console.error('등록 오류:', err);
+      alert('등록 실패');
     }
   };
 
   const handleLike = async (post: Post) => {
-    if (isConnected && supabaseClient) {
-      try {
-        const { error } = await supabaseClient
-          .from('posts')
-          .update({ likes: (post.likes || 0) + 1 })
-          .eq('id', post.id);
-        if (error) throw error;
-        await fetchPosts();
-      } catch (err) {
-        console.error('좋아요 오류:', err);
-      }
-    } else {
-      setPosts(posts.map((p) => p.id === post.id ? { ...p, likes: (p.likes || 0) + 1 } : p));
+    if (!hasSupabase) return;
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/posts?id=eq.${post.id}`,
+        {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({ likes: (post.likes || 0) + 1 }),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      await fetchPosts();
+    } catch (err) {
+      console.error('좋아요 오류:', err);
     }
   };
 
   const handleAddComment = async (postId: number, text: string) => {
-    if (isConnected && supabaseClient) {
-      try {
-        const { error } = await supabaseClient.from('comments').insert([{
-          post_id: postId,
-          author: '시민 참여자',
-          text,
-        }]);
-        if (error) throw error;
-        setNotifications((prev) => [...prev, `댓글이 등록되었습니다.`]);
-        setTimeout(() => setNotifications((prev) => prev.slice(1)), 3000);
-        await fetchPosts();
-      } catch (err) {
-        console.error('댓글 오류:', err);
-      }
-    } else {
-      setPosts(posts.map((p) => {
-        if (p.id !== postId) return p;
-        const newComment: Comment = {
-          id: Date.now(),
-          post_id: postId,
-          author: '시민 참여자',
-          text,
-          created_at: new Date().toISOString(),
-        };
-        return { ...p, comments: [...(p.comments || []), newComment] };
-      }));
+    if (!hasSupabase) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ post_id: postId, author: '시민 참여자', text }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setNotifications((prev) => [...prev, '댓글이 등록되었습니다.']);
+      setTimeout(() => setNotifications((prev) => prev.slice(1)), 3000);
+      await fetchPosts();
+    } catch (err) {
+      console.error('댓글 오류:', err);
     }
   };
 
@@ -202,14 +134,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} isConnected={isConnected} />
+      <Header activeTab={activeTab} onTabChange={setActiveTab} isConnected={hasSupabase} />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {activeTab === 'analyzer' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
             <ProposalForm
-              isConnected={isConnected}
+              isConnected={hasSupabase}
               analysisResult={analysisResult}
               onSubmit={handleSubmitPost}
             />
