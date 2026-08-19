@@ -95,14 +95,13 @@ export default function ProposalForm({ isConnected, analysisResult, onSubmit }: 
             <label className="block text-xs text-gray-500 mb-1">위치</label>
             <select
               value={location}
-              onChange={(e) => setLocation(e.target.value as LocationType | '기타')}
+              onChange={(e) => setLocation(e.target.value as LocationType)}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-400 bg-white"
             >
               <option value="">선택</option>
               {LOCATIONS.map((l) => (
-                <option key={l} value={l}>{l}</option>
+                <option key={l} value={l}>{l === '기타' ? '기타...' : l}</option>
               ))}
-              <option value="기타">기타...</option>
             </select>
           </div>
           {location === '기타' && (
