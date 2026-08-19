@@ -138,23 +138,23 @@ export default function App() {
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {activeTab === 'analyzer' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
+          <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
+        )}
+
+        {activeTab === 'board' && (
+          <div className="space-y-4">
             <ProposalForm
               isConnected={hasSupabase}
               analysisResult={analysisResult}
               onSubmit={handleSubmitPost}
             />
+            <ProposalList
+              posts={posts}
+              onLike={handleLike}
+              onAddComment={handleAddComment}
+              onShare={handleShare}
+            />
           </div>
-        )}
-
-        {activeTab === 'board' && (
-          <ProposalList
-            posts={posts}
-            onLike={handleLike}
-            onAddComment={handleAddComment}
-            onShare={handleShare}
-          />
         )}
 
         {activeTab === 'stats' && <Stats posts={posts} />}
