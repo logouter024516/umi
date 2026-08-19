@@ -3,6 +3,7 @@ import type { Post, TabType, Comment } from './types';
 import Header from './components/Header';
 import ProposalForm from './components/ProposalForm';
 import ProposalList from './components/ProposalList';
+import ImageAnalyzer from './components/ImageAnalyzer';
 import Stats from './components/Stats';
 import Leaderboard from './components/Leaderboard';
 
