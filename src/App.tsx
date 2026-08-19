@@ -137,12 +137,9 @@ export default function App() {
       <Header activeTab={activeTab} onTabChange={setActiveTab} isConnected={hasSupabase} />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {activeTab === 'analyzer' && (
-          <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
-        )}
-
         {activeTab === 'board' && (
           <div className="space-y-4">
+            <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
             <ProposalForm
               isConnected={hasSupabase}
               analysisResult={analysisResult}
