@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Post, TabType, Comment } from './types';
 import Header from './components/Header';
-import ImageAnalyzer from './components/ImageAnalyzer';
 import ProposalForm from './components/ProposalForm';
 import ProposalList from './components/ProposalList';
 import Stats from './components/Stats';
