@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Prediction } from '../types';
 
-const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/-tCUXZZM1/';
+const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/MHE9y_TuM/';
 
 interface ImageAnalyzerProps {
   onAnalysisComplete: (result: string) => void;
