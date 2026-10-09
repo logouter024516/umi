@@ -4,6 +4,7 @@ import Header from './components/Header';
 import ProposalForm from './components/ProposalForm';
 import ProposalList from './components/ProposalList';
 import ImageAnalyzer from './components/ImageAnalyzer';
+import DemoExperience from './components/DemoExperience';
 import Stats from './components/Stats';
 import Leaderboard from './components/Leaderboard';
 
@@ -19,7 +20,7 @@ const headers = () => ({
 });
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('board');
+  const [activeTab, setActiveTab] = useState<TabType>('demo');
   const [posts, setPosts] = useState<Post[]>([]);
   const [analysisResult, setAnalysisResult] = useState('');
   const [notifications, setNotifications] = useState<string[]>([]);
@@ -152,6 +153,10 @@ export default function App() {
               onShare={handleShare}
             />
           </div>
+        )}
+
+        {activeTab === 'demo' && (
+          <DemoExperience onGoToBoard={() => setActiveTab('board')} onUseResult={setAnalysisResult} />
         )}
 
         {activeTab === 'stats' && <Stats posts={posts} />}

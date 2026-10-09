@@ -7,6 +7,7 @@ interface HeaderProps {
 }
 
 const TABS: { key: TabType; label: string }[] = [
+  { key: 'demo', label: '체험해보기' },
   { key: 'board', label: '제안 게시판' },
   { key: 'stats', label: '통계' },
   { key: 'leaderboard', label: '리더보드' },

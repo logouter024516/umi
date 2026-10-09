@@ -25,7 +25,7 @@ export interface Prediction {
   probability: number;
 }
 
-export type TabType = 'analyzer' | 'board' | 'stats' | 'leaderboard';
+export type TabType = 'analyzer' | 'board' | 'stats' | 'leaderboard' | 'demo';
 
 export type Category = '녹화' | '쿨루프' | '바닥재' | '바람길' | '기타';
 
