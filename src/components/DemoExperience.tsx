@@ -130,22 +130,40 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
 
   return (
     <div className="space-y-4">
-      {/* 헤더 */}
-      <div className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-extrabold text-gray-900">체험해보기</h2>
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">DEMO</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">서버·AI 없이 동작</span>
+      {/* Demo introduction and tutorial */}
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="bg-slate-950 px-5 py-7 text-white sm:px-8 sm:py-9">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-orange-400/15 px-3 py-1 text-[11px] font-bold tracking-wide text-orange-200">GUIDED DEMO</span>
+            <span className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-slate-300">예시 데이터 · 로컬 체험</span>
+          </div>
+          <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">4단계로 열섬 완화 과정을 체험해 보세요.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">장소를 선택하고, 예시 분류 결과를 살펴본 뒤, 토론과 제안 작성까지 이어집니다. 별도 계정 없이 인터랙션을 둘러볼 수 있습니다.</p>
+          <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
+            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 설치 불필요</span>
+            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 제안·댓글 상호작용</span>
+            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 새로고침 시 초기화</span>
+          </div>
         </div>
-        <ol className="flex items-center gap-1.5 mt-2 text-[11px] font-medium text-gray-500">
-          {['이미지 선택', 'AI 판정', '토론 참여', '제안 쓰기'].map((s, i) => (
-            <li key={s} className="flex items-center gap-1.5">
-              <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${i === 0 ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>{i + 1}</span>
-              {s}{i < 3 && <span className="text-gray-300">›</span>}
-            </li>
+        <div className="grid gap-2 p-4 sm:grid-cols-4 sm:p-5">
+          {[
+            { n: '01', title: '장소 선택', hint: '관심 있는 예시를 고르세요.' },
+            { n: '02', title: '결과 확인', hint: '분류와 제안 가이드를 봅니다.' },
+            { n: '03', title: '토론 참여', hint: '빠른 답변 또는 직접 의견을 남깁니다.' },
+            { n: '04', title: '제안 작성', hint: '내용을 작성하고 등록해 봅니다.' },
+          ].map((step, i) => (
+            <div key={step.n} className={`rounded-2xl border p-3 sm:p-4 ${i === 0 ? 'border-orange-200 bg-orange-50/70' : 'border-slate-100 bg-slate-50'}`}>
+              <span className={`text-[11px] font-black tracking-widest ${i === 0 ? 'text-orange-600' : 'text-slate-400'}`}>{step.n}</span>
+              <p className="mt-2 text-sm font-extrabold text-slate-900">{step.title}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{step.hint}</p>
+            </div>
           ))}
-        </ol>
-      </div>
+        </div>
+        <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
+          <span className="mt-0.5 text-amber-700" aria-hidden>ⓘ</span>
+          <p className="text-xs leading-5 text-amber-900"><strong>시연 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안과 댓글은 서버에 저장되지 않습니다.</p>
+        </div>
+      </section>
 
       <div className="space-y-4">
             {/* STEP 1 */}
