@@ -166,7 +166,7 @@ export default function ProposalForm({ isConnected, onSubmit }: ProposalFormProp
             type="submit"
             className="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
           >
-            {isConnected ? '등록' : '임시 저장'}
+            '등록'
           </button>
         </div>
       </form>
