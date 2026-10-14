@@ -26,7 +26,7 @@ export const MOCK_IMAGES: MockImage[] = [
     id: 'rooftop',
     src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
     sourceLabel: 'Unsplash',
-    sourceUrl: 'https://unsplash.com/'
+    sourceUrl: 'https://unsplash.com/',
     title: '옥상 아스팔트',
     location: '1-3 · 본관 옥상',
     desc: '방수 아스팔트 마감, 정오 직사광 노출',
@@ -43,7 +43,7 @@ export const MOCK_IMAGES: MockImage[] = [
     id: 'asphalt',
     src: 'https://images.unsplash.com/photo-1732987499973-e4fd25f4968c?auto=format&fit=crop&w=1200&q=80',
     sourceLabel: 'Unsplash',
-    sourceUrl: 'https://unsplash.com/photos/an-empty-street-with-a-few-cars-driving-down-it-5xY2Q7-smW8'
+    sourceUrl: 'https://unsplash.com/photos/an-empty-street-with-a-few-cars-driving-down-it-5xY2Q7-smW8',
     title: '아스팔트 도로',
     location: '2-5 · 통학로',
     desc: '차도 + 보도, 가로수 단절 구간',
@@ -60,7 +60,7 @@ export const MOCK_IMAGES: MockImage[] = [
     id: 'park',
     src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
     sourceLabel: 'Unsplash',
-    sourceUrl: 'https://unsplash.com/'
+    sourceUrl: 'https://unsplash.com/',
     title: '도시 공원',
     location: '운동장 옆 녹지',
     desc: '수목 + 잔디, 증발산 활발 구간',
@@ -77,7 +77,7 @@ export const MOCK_IMAGES: MockImage[] = [
     id: 'coolroof',
     src: 'https://images.unsplash.com/photo-1513257068508-0cd03c3209aa?auto=format&fit=crop&w=1200&q=80',
     sourceLabel: 'Unsplash · Chuttersnap',
-    sourceUrl: 'https://unsplash.com/photos/aerial-photo-of-trees-and-high-rise-buildings-mEOfn2dK0Vo'
+    sourceUrl: 'https://unsplash.com/photos/aerial-photo-of-trees-and-high-rise-buildings-mEOfn2dK0Vo',
     title: '쿨루프 건물',
     location: '3-2 · 강당동',
     desc: '고반사 차열 도장 시공 완료',
