@@ -7,6 +7,7 @@ import ImageAnalyzer from './components/ImageAnalyzer';
 import DemoExperience from './components/DemoExperience';
 import Stats from './components/Stats';
 import Leaderboard from './components/Leaderboard';
+import LandingPage from './components/LandingPage';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -20,7 +21,7 @@ const headers = () => ({
 });
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('demo');
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [posts, setPosts] = useState<Post[]>([]);
   const [analysisResult, setAnalysisResult] = useState('');
   const [notifications, setNotifications] = useState<string[]>([]);
@@ -137,7 +138,10 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <Header activeTab={activeTab} onTabChange={setActiveTab} isConnected={hasSupabase} />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:py-10">
+        {activeTab === 'home' && (
+          <LandingPage onStartDemo={() => setActiveTab('demo')} onOpenBoard={() => setActiveTab('board')} />
+        )}
         {activeTab === 'board' && (
           <div className="space-y-4">
             <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
@@ -163,11 +167,11 @@ export default function App() {
         {activeTab === 'leaderboard' && <Leaderboard posts={posts} />}
       </main>
 
-      <footer className="border-t border-gray-200 py-6 mt-12 bg-white">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-xs text-gray-400">
-            열섬 완화 제안 플랫폼 | Supabase 연동형 프로토타입
-          </p>
+      <footer className="mt-16 border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-7 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <span className="font-bold text-slate-700">열섬랩 · HEATLAB</span>
+          <span>시민 참여형 도심 열섬 완화 프로토타입</span>
+          <span>시연 결과는 실제 기상·위성 측정값이 아닐 수 있습니다.</span>
         </div>
       </footer>
 
