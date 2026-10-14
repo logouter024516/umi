@@ -158,10 +158,6 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'demo' && (
-          <DemoExperience onGoToBoard={() => setActiveTab('board')} onUseResult={setAnalysisResult} />
-        )}
-
         {activeTab === 'stats' && <Stats posts={posts} />}
         {activeTab === 'leaderboard' && <Leaderboard posts={posts} />}
       </main>
