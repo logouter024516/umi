@@ -27,7 +27,11 @@ export default function Header({ activeTab, onTabChange, isConnected }: HeaderPr
         </button>
         <div className="flex items-center gap-3">
           <nav aria-label="주요 메뉴" className="-mx-1 flex flex-1 gap-1 overflow-x-auto pb-1 lg:pb-0">
-            {TABS.map((tab) => (
+            {TABS.map((tab) => tab.key === 'demo' ? (
+              <a key={tab.key} href="/try" className="inline-flex min-h-10 shrink-0 items-center rounded-xl px-3 text-sm font-semibold text-orange-700 transition-colors hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400">
+                Try 체험 ↗
+              </a>
+            ) : (
               <button key={tab.key} type="button" onClick={() => onTabChange(tab.key)} aria-current={activeTab === tab.key ? 'page' : undefined}
                 className={`min-h-10 shrink-0 rounded-xl px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 ${activeTab === tab.key ? 'bg-orange-50 text-orange-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}>
                 {tab.label}
