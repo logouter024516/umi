@@ -1,4 +1,5 @@
 import { MOCK_IMAGES } from '../data/mockDemo';
+import ScenarioIllustration from './ScenarioIllustration';
 
 interface LandingPageProps {
   onStartDemo: () => void;
@@ -54,7 +55,7 @@ export default function LandingPage({ onStartDemo, onOpenBoard }: LandingPagePro
                 </div>
                 <span className="rounded-full bg-red-400/15 px-3 py-1 text-xs font-bold text-red-200">{featured.temp}</span>
               </div>
-              <img src={featured.src} alt={featured.title + ' 시연용 예시 이미지'} className="aspect-[4/3] w-full rounded-xl object-cover" />
+              <ScenarioIllustration id={featured.id} title={featured.title + ' 시연용 예시 이미지'} className="aspect-[4/3] w-full rounded-xl" />
               <div className="grid grid-cols-2 gap-3 p-2 pt-4">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
                   <p className="text-[11px] text-slate-400">예시 분류</p>
