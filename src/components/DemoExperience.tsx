@@ -3,6 +3,7 @@ import { MOCK_IMAGES, MOCK_CHAT, QUICK_REPLIES, MOCK_PROPOSALS } from '../data/m
 import type { MockMessage, MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
 import ImageAnalyzer from './ImageAnalyzer';
+import ScenarioIllustration from './ScenarioIllustration';
 import type { Category } from '../types';
 
 const AVATAR: Record<string, { bg: string; emoji: string }> = {
@@ -232,7 +233,7 @@ export default function DemoExperience() {
               {analyzing && (
                 <div className="py-6" aria-live="polite">
                   <div className="flex items-center gap-3 mb-2">
-                    <img src={selected.src} alt="" className="w-14 h-14 rounded-lg object-cover border border-gray-200" />
+                    <ScenarioIllustration id={selected.id} className="h-14 w-14 shrink-0 rounded-lg border border-gray-200" />
                     <div className="flex-1">
                       <p className="text-[13px] font-bold text-gray-800">{selected.title} 분석 중… {progress}%</p>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-1.5">
@@ -245,7 +246,7 @@ export default function DemoExperience() {
               )}
               {!analyzing && analyzed && (
                 <div className="md:flex gap-4">
-                  <img src={analyzed.src} alt={`${analyzed.title} 분석 이미지`} className="w-full md:w-56 h-40 object-cover rounded-lg border border-gray-200" />
+                  <ScenarioIllustration id={analyzed.id} title={`${analyzed.title} 분석 이미지`} className="h-40 w-full rounded-lg border border-gray-200 md:w-56" />
                   <div className="flex-1 mt-3 md:mt-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · 예시 시나리오</p>
