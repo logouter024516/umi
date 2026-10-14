@@ -4,6 +4,7 @@ interface HeaderProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   isConnected: boolean;
+  onOpenGuide: () => void;
 }
 
 const TABS: { key: TabType; label: string }[] = [
@@ -14,7 +15,7 @@ const TABS: { key: TabType; label: string }[] = [
   { key: 'leaderboard', label: '리더보드' },
 ];
 
-export default function Header({ activeTab, onTabChange, isConnected }: HeaderProps) {
+export default function Header({ activeTab, onTabChange, isConnected, onOpenGuide }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -38,6 +39,9 @@ export default function Header({ activeTab, onTabChange, isConnected }: HeaderPr
               </button>
             ))}
           </nav>
+          <button type="button" onClick={onOpenGuide} className="min-h-10 shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400" aria-label="사용법 가이드 다시 보기">
+            <span aria-hidden>ⓘ </span>가이드
+          </button>
           <span className={`hidden shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex ${isConnected ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-400'}`} />
             {isConnected ? '서버 연결' : '체험 모드'}
