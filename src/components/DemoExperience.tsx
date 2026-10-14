@@ -181,8 +181,14 @@ export default function DemoExperience() {
                         active ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-gray-100 hover:border-gray-300 hover:shadow'
                       }`}
                     >
-                      <div className="relative">
-                        <img src={m.src} alt={m.title} className="w-full h-36 object-cover" draggable={false} loading="lazy" />
+                      <div className={`relative flex h-36 items-center justify-center overflow-hidden ${m.id === 'rooftop' ? 'bg-gradient-to-br from-orange-100 via-amber-50 to-slate-200' : m.id === 'asphalt' ? 'bg-gradient-to-br from-slate-200 via-slate-100 to-orange-100' : m.id === 'park' ? 'bg-gradient-to-br from-emerald-100 via-green-50 to-sky-100' : 'bg-gradient-to-br from-sky-100 via-slate-100 to-orange-100'}`}>
+                        <div className="absolute inset-0 opacity-40" aria-hidden>
+                          <div className="absolute bottom-0 left-0 h-12 w-full bg-white/50" />
+                          <div className="absolute bottom-5 left-5 h-14 w-10 rounded-t-lg bg-slate-500/15" />
+                          <div className="absolute bottom-4 right-7 h-20 w-12 rounded-t-lg bg-slate-500/15" />
+                          <div className="absolute bottom-4 right-20 h-10 w-8 rounded-t-lg bg-slate-500/15" />
+                        </div>
+                        <span className="relative z-10 text-5xl drop-shadow-sm" aria-hidden>{m.id === 'rooftop' ? '🏢' : m.id === 'asphalt' ? '🛣️' : m.id === 'park' ? '🌳' : '🏙️'}</span>
                         <span className="absolute top-2 left-2 text-[11px] font-bold px-2 py-1 rounded-full bg-slate-950/80 text-white shadow">예시 시나리오</span>
                         {active && (
                           <span className="absolute top-2 right-2 text-[11px] font-bold px-2 py-1 rounded-full bg-gray-900 text-white">선택됨 ✓</span>
@@ -192,7 +198,6 @@ export default function DemoExperience() {
                         <p className="text-[13px] font-bold text-gray-900 leading-tight">{m.title}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">{m.location}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5 truncate">{m.desc}</p>
-                        <a href={m.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[10px] text-orange-700 underline underline-offset-2" onClick={(e) => e.stopPropagation()}>사진 출처: {m.sourceLabel}</a>
                       </div>
                     </button>
                   );
