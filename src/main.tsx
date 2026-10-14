@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 
 // Load the isolated Try experience only when the visitor opens /try.
-const isTryRoute = window.location.pathname.replace(/\\/+$/, '') === '/try';
+const isTryRoute = window.location.pathname.replace(/\/+$/, '') === '/try';
 const RouteApp = lazy(() => isTryRoute ? import('./TryApp') : import('./App'));
 
 createRoot(document.getElementById('root')!).render(
