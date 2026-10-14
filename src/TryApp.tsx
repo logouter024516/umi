@@ -96,7 +96,7 @@ export default function TryApp() {
           </div>
           <button type="button" onClick={() => { setGuideIndex(0); setGuideOpen(true); }} className="min-h-11 shrink-0 rounded-xl border border-orange-300 bg-white px-4 text-sm font-bold text-orange-800 hover:bg-orange-100">사용법 보기</button>
         </div>
-        <DemoExperience onGoToBoard={() => window.location.assign('/')} onUseResult={() => undefined} />
+        <DemoExperience />
       </main>
 
       <footer className="mt-10 border-t border-slate-200 bg-white">

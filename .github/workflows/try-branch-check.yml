@@ -5,6 +5,7 @@ on:
     branches:
       - v2/try-route-tutorial
       - v2/try-route-main-ready
+      - v2/try-real-images-upload
   workflow_dispatch:
 
 permissions:

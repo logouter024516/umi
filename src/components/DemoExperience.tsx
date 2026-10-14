@@ -2,12 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { MOCK_IMAGES, MOCK_CHAT, QUICK_REPLIES, MOCK_PROPOSALS } from '../data/mockDemo';
 import type { MockMessage, MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
+import ImageAnalyzer from './ImageAnalyzer';
 import type { Category } from '../types';
-
-interface DemoExperienceProps {
-  onGoToBoard: () => void;
-  onUseResult: (result: string) => void;
-}
 
 const AVATAR: Record<string, { bg: string; emoji: string }> = {
   시민: { bg: 'bg-emerald-100 text-emerald-700', emoji: '🧑' },
@@ -22,7 +18,7 @@ function tempColor(t: number) {
   return 'bg-emerald-500';
 }
 
-export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperienceProps) {
+export default function DemoExperience() {
   const [selectedId, setSelectedId] = useState(MOCK_IMAGES[0].id);
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,6 +31,7 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
   const [mContent, setMContent] = useState('');
   const [mCategory, setMCategory] = useState<Category | ''>('');
   const [appliedStatus, setAppliedStatus] = useState(`${MOCK_IMAGES[0].probs[0].className} (${(MOCK_IMAGES[0].probs[0].probability * 100).toFixed(0)}%)`);
+  const [uploadedAnalysisResult, setUploadedAnalysisResult] = useState('');
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [expandedMock, setExpandedMock] = useState<number | null>(MOCK_PROPOSALS[0].id);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -185,10 +182,8 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
                       }`}
                     >
                       <div className="relative">
-                        <img src={m.src} alt={`${m.title} — ${m.temp}`} className="w-full h-36 object-cover" draggable={false} loading="lazy" />
-                        <span className={`absolute top-2 left-2 text-[11px] font-bold px-2 py-1 rounded-full text-white shadow ${tempColor(m.tempValue)}`}>
-                          {m.temp}
-                        </span>
+                        <img src={m.src} alt={m.title} className="w-full h-36 object-cover" draggable={false} loading="lazy" />
+                        <span className="absolute top-2 left-2 text-[11px] font-bold px-2 py-1 rounded-full bg-slate-950/80 text-white shadow">예시 시나리오</span>
                         {active && (
                           <span className="absolute top-2 right-2 text-[11px] font-bold px-2 py-1 rounded-full bg-gray-900 text-white">선택됨 ✓</span>
                         )}
@@ -197,11 +192,33 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
                         <p className="text-[13px] font-bold text-gray-900 leading-tight">{m.title}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">{m.location}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5 truncate">{m.desc}</p>
+                        <a href={m.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[10px] text-orange-700 underline underline-offset-2" onClick={(e) => e.stopPropagation()}>사진 출처: {m.sourceLabel}</a>
                       </div>
                     </button>
                   );
                 })}
               </div>
+            </section>
+
+            {/* Real service model: uploads/webcam are analyzed locally and never posted. */}
+            <section aria-label="현장 사진 업로드 및 실제 AI 분석" className="border border-orange-200 rounded-xl bg-white p-4 shadow-sm">
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-extrabold text-gray-900">현장 사진 직접 분석</h3>
+                  <p className="mt-1 text-xs leading-5 text-gray-500">기기에서 사진을 업로드하거나 카메라로 촬영해 서비스의 기존 AI 모델로 분석합니다.</p>
+                </div>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">실제 모델 추론</span>
+              </div>
+              <ImageAnalyzer onAnalysisComplete={(result) => {
+                setUploadedAnalysisResult(result);
+                setAppliedStatus(result);
+              }} />
+              {uploadedAnalysisResult && (
+                <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
+                  업로드 이미지 분석 결과가 목업 제안서의 AI 결과 항목에 반영됩니다. 이 결과와 사진은 실제 게시판에 전송되지 않습니다.
+                </p>
+              )}
+              <p className="mt-3 text-[11px] leading-5 text-slate-500">참고: 모델 추론 결과는 분류 예측이며, 사진만으로 실제 표면 온도나 현장의 열섬 정도를 측정하는 것은 아닙니다.</p>
             </section>
 
             {/* STEP 2 */}
@@ -226,12 +243,12 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
                   <img src={analyzed.src} alt={`${analyzed.title} 분석 이미지`} className="w-full md:w-56 h-40 object-cover rounded-lg border border-gray-200" />
                   <div className="flex-1 mt-3 md:mt-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · {analyzed.temp}</p>
+                      <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · 예시 시나리오</p>
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${analyzed.isHeat ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
                         {analyzed.isHeat ? '🔥 열섬 우려' : '🌿 정상'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{analyzed.location} · {analyzed.desc}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{analyzed.location} · {analyzed.desc} · 표시 수치는 가상 예시</p>
                     <div className="space-y-2 mt-3">
                       {analyzed.probs.map((p, i) => (
                         <div key={p.className} className="flex items-center gap-2">
@@ -257,15 +274,7 @@ export default function DemoExperience({ onGoToBoard, onUseResult }: DemoExperie
                       >
                         이 결과로 목업 제안서 쓰기 ↓
                       </button>
-                      <button
-                        onClick={() => {
-                          onUseResult(`${analyzed.probs[0].className} (${(analyzed.probs[0].probability * 100).toFixed(0)}%)`);
-                          onGoToBoard();
-                        }}
-                        className="flex-1 min-h-[48px] px-5 text-sm font-medium bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 active:scale-[0.98] touch-manipulation"
-                      >
-                        실제 게시판에 이어쓰기 →
-                      </button>
+
                     </div>
                   </div>
                 </div>
