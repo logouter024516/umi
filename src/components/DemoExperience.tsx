@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { MOCK_IMAGES, MOCK_CHAT, QUICK_REPLIES, MOCK_PROPOSALS } from '../data/mockDemo';
 import type { MockMessage, MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
-import ImageAnalyzer from './ImageAnalyzer';
 import ScenarioIllustration from './ScenarioIllustration';
 import type { Category } from '../types';
 
@@ -32,7 +31,6 @@ export default function DemoExperience() {
   const [mContent, setMContent] = useState('');
   const [mCategory, setMCategory] = useState<Category | ''>('');
   const [appliedStatus, setAppliedStatus] = useState(`${MOCK_IMAGES[0].probs[0].className} (${(MOCK_IMAGES[0].probs[0].probability * 100).toFixed(0)}%)`);
-  const [uploadedAnalysisResult, setUploadedAnalysisResult] = useState('');
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [expandedMock, setExpandedMock] = useState<number | null>(MOCK_PROPOSALS[0].id);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -167,7 +165,7 @@ export default function DemoExperience() {
             {/* STEP 1 */}
             <section aria-label="목업 이미지 선택" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between mb-3">
-                <h3 className="text-sm font-extrabold text-gray-900">STEP 1 · 현장 사진 고르기</h3>
+                <h3 className="text-sm font-extrabold text-gray-900">STEP 1 · 장소 예시 고르기</h3>
                 <span className="text-[11px] text-gray-400">모바일: 좌우 스와이프</span>
               </div>
               <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 md:grid md:grid-cols-4 md:overflow-visible">
@@ -206,30 +204,9 @@ export default function DemoExperience() {
               </div>
             </section>
 
-            {/* Real service model: uploads/webcam are analyzed locally and never posted. */}
-            <section aria-label="현장 사진 업로드 및 실제 AI 분석" className="border border-orange-200 rounded-xl bg-white p-4 shadow-sm">
-              <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <h3 className="text-sm font-extrabold text-gray-900">현장 사진 직접 분석</h3>
-                  <p className="mt-1 text-xs leading-5 text-gray-500">기기에서 사진을 업로드하거나 카메라로 촬영해 서비스의 기존 AI 모델로 분석합니다.</p>
-                </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">실제 모델 추론</span>
-              </div>
-              <ImageAnalyzer onAnalysisComplete={(result) => {
-                setUploadedAnalysisResult(result);
-                setAppliedStatus(result);
-              }} />
-              {uploadedAnalysisResult && (
-                <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
-                  업로드 이미지 분석 결과가 목업 제안서의 AI 결과 항목에 반영됩니다. 이 결과와 사진은 실제 게시판에 전송되지 않습니다.
-                </p>
-              )}
-              <p className="mt-3 text-[11px] leading-5 text-slate-500">참고: 모델 추론 결과는 분류 예측이며, 사진만으로 실제 표면 온도나 현장의 열섬 정도를 측정하는 것은 아닙니다.</p>
-            </section>
-
             {/* STEP 2 */}
-            <section aria-label="AI 판정 시연" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
-              <h3 className="text-sm font-extrabold text-gray-900 mb-3">STEP 2 · AI 판정 결과</h3>
+            <section aria-label="예시 분류 결과" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+              <h3 className="text-sm font-extrabold text-gray-900 mb-3">STEP 2 · 예시 분류 결과</h3>
               {analyzing && (
                 <div className="py-6" aria-live="polite">
                   <div className="flex items-center gap-3 mb-2">
@@ -395,11 +372,11 @@ export default function DemoExperience() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="mock-status" className="block text-xs text-gray-500 mb-1">AI 분석 결과 (자동)</label>
+                    <label htmlFor="mock-status" className="block text-xs text-gray-500 mb-1">예시 분류 결과 (자동)</label>
                     <input
                       id="mock-status"
                       disabled
-                      value={appliedStatus || '이미지 분석 후 자동 기입'}
+                      value={appliedStatus || '장소 선택 후 자동 기입'}
                       className="w-full min-h-[48px] px-3 text-sm border border-gray-100 rounded-lg bg-gray-100 text-gray-500"
                     />
                   </div>
