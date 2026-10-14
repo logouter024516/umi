@@ -4,7 +4,6 @@ import type { Category, LocationType } from '../types';
 
 interface ProposalFormProps {
   isConnected: boolean;
-  analysisResult: string;
   onSubmit: (post: {
     author: string;
     title: string;
@@ -16,7 +15,7 @@ interface ProposalFormProps {
   }) => void;
 }
 
-export default function ProposalForm({ isConnected, analysisResult, onSubmit }: ProposalFormProps) {
+export default function ProposalForm({ isConnected, onSubmit }: ProposalFormProps) {
   const [author, setAuthor] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -36,7 +35,7 @@ export default function ProposalForm({ isConnected, analysisResult, onSubmit }: 
       author: author.trim(),
       title: title.trim(),
       content: content.trim(),
-      status: analysisResult || '직접 제안',
+      status: '직접 제안',
       location: finalLocation || '',
       category,
       image_url: imageUrl,
@@ -90,7 +89,7 @@ export default function ProposalForm({ isConnected, analysisResult, onSubmit }: 
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">위치</label>
             <select
@@ -116,15 +115,6 @@ export default function ProposalForm({ isConnected, analysisResult, onSubmit }: 
               />
             </div>
           )}
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">AI 분석 결과</label>
-            <input
-              type="text"
-              disabled
-              value={analysisResult || '이미지 분석 후 자동 기입'}
-              className="w-full px-3 py-2 text-sm border border-gray-100 rounded bg-gray-50 text-gray-400"
-            />
-          </div>
         </div>
 
         <div>
