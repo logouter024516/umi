@@ -3,7 +3,6 @@ import type { Post, TabType, Comment } from './types';
 import Header from './components/Header';
 import ProposalForm from './components/ProposalForm';
 import ProposalList from './components/ProposalList';
-import ImageAnalyzer from './components/ImageAnalyzer';
 import Stats from './components/Stats';
 import Leaderboard from './components/Leaderboard';
 import LandingPage from './components/LandingPage';
@@ -20,12 +19,12 @@ const headers = () => ({
 });
 
 
-const GUIDE_KEY = 'heatlab-dashboard-guide-v1';
+const GUIDE_KEY = 'heatlab-dashboard-guide-v2';
 
 const GUIDE_STEPS: { tab: TabType; eyebrow: string; title: string; description: string; icon: string; tip: string }[] = [
   { tab: 'home', eyebrow: 'WELCOME · 01 / 06', title: '열섬랩 대시보드에 오신 것을 환영해요', description: '이 대시보드에서 도시 열섬 문제를 살펴보고, 시민 제안을 작성하고, 다른 참여자의 아이디어와 현황을 확인할 수 있어요.', icon: '✦', tip: '상단 메뉴를 이용하면 언제든 다른 영역으로 이동할 수 있어요.' },
-  { tab: 'board', eyebrow: 'IMAGE ANALYSIS · 02 / 06', title: '이미지 분석으로 시작하세요', description: '사진을 업로드하거나 카메라를 켜면 AI 분류 결과와 신뢰도를 확인할 수 있어요. 분석 결과는 새 제안 작성란에 참고 정보로 연결됩니다.', icon: '⌕', tip: '분류 결과는 참고용이며, 실제 표면 온도를 측정하거나 열섬을 확정 진단하는 기능은 아니에요.' },
-  { tab: 'board', eyebrow: 'CREATE · 03 / 06', title: '새 제안을 구체적으로 작성하세요', description: '작성자, 카테고리, 위치, 제목과 상세 내용을 입력하세요. 이미지 분석을 먼저 했다면 결과가 제안에 참고 정보로 표시됩니다. 사진 첨부는 선택 사항이에요.', icon: '＋', tip: '실제 등록에는 서버 연결이 필요해요. 연결되지 않은 상태에서는 제안이 저장되지 않을 수 있어요.' },
+  { tab: 'board', eyebrow: 'EXPLORE · 02 / 06', title: '시민 제안부터 둘러보세요', description: '게시판에서 도시 열섬 완화에 관한 제안을 살펴보고, 관심 있는 주제에 공감하거나 댓글로 의견을 나눌 수 있어요.', icon: '⌕', tip: '실제 게시글은 서버 연결 상태에 따라 불러오거나 등록할 수 있어요.' },
+  { tab: 'board', eyebrow: 'CREATE · 03 / 06', title: '새 제안을 구체적으로 작성하세요', description: '작성자, 카테고리, 위치, 제목과 상세 내용을 입력해 도시 열섬 완화 아이디어를 제안할 수 있어요. 필요한 경우 참고 이미지를 첨부할 수도 있어요.', icon: '＋', tip: '실제 등록에는 서버 연결이 필요해요. 연결되지 않은 상태에서는 제안이 저장되지 않을 수 있어요.' },
   { tab: 'board', eyebrow: 'COMMUNITY · 04 / 06', title: '다른 시민의 제안에 참여하세요', description: '제안 목록에서 제목이나 내용으로 검색하고, 카테고리·위치 필터로 관심 있는 글을 좁힐 수 있어요. 공감, 댓글, 공유 기능으로 의견을 나눠보세요.', icon: '↗', tip: '공유 버튼은 해당 제안으로 이동할 수 있는 링크를 복사해요.' },
   { tab: 'stats', eyebrow: 'INSIGHTS · 05 / 06', title: '현황에서 참여 흐름을 읽어보세요', description: '전체 제안·좋아요·댓글 수와 카테고리별·위치별 제안 분포를 확인할 수 있어요. 어떤 주제와 장소에 관심이 모이는지 파악할 때 유용합니다.', icon: '▥', tip: '현황은 현재 불러온 제안 데이터를 바탕으로 계산돼요.' },
   { tab: 'leaderboard', eyebrow: 'COMMUNITY · 06 / 06', title: '리더보드에서 참여를 확인하세요', description: '참여자별 제안 수, 좋아요, 댓글을 모아 순위를 보여줘요. 다양한 시민의 활동을 살펴보고 새로운 아이디어를 발견해 보세요.', icon: '♛', tip: '순위는 좋아요 수를 우선으로 정렬하고, 제안 수를 보조 기준으로 사용해요.' },
@@ -34,7 +33,6 @@ const GUIDE_STEPS: { tab: TabType; eyebrow: string; title: string; description: 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [analysisResult, setAnalysisResult] = useState('');
   const [notifications, setNotifications] = useState<string[]>([]);
   const [guideOpen, setGuideOpen] = useState(() => {
     try { return window.localStorage.getItem(GUIDE_KEY) !== 'completed'; }
@@ -192,10 +190,8 @@ export default function App() {
         )}
         {activeTab === 'board' && (
           <div className="space-y-4">
-            <ImageAnalyzer onAnalysisComplete={setAnalysisResult} />
             <ProposalForm
               isConnected={hasSupabase}
-              analysisResult={analysisResult}
               onSubmit={handleSubmitPost}
             />
             <ProposalList
