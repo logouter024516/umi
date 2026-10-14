@@ -4,7 +4,6 @@ import Header from './components/Header';
 import ProposalForm from './components/ProposalForm';
 import ProposalList from './components/ProposalList';
 import ImageAnalyzer from './components/ImageAnalyzer';
-import DemoExperience from './components/DemoExperience';
 import Stats from './components/Stats';
 import Leaderboard from './components/Leaderboard';
 import LandingPage from './components/LandingPage';
@@ -140,7 +139,7 @@ export default function App() {
 
       <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:py-10">
         {activeTab === 'home' && (
-          <LandingPage onStartDemo={() => setActiveTab('demo')} onOpenBoard={() => setActiveTab('board')} />
+          <LandingPage onStartDemo={() => window.location.assign('/try')} onOpenBoard={() => setActiveTab('board')} />
         )}
         {activeTab === 'board' && (
           <div className="space-y-4">
