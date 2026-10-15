@@ -5,13 +5,6 @@ import { CATEGORIES } from '../types';
 import ScenarioIllustration from './ScenarioIllustration';
 import type { Category } from '../types';
 
-function tempColor(t: number) {
-  if (t >= 37) return 'bg-red-500';
-  if (t >= 33) return 'bg-orange-400';
-  if (t >= 30) return 'bg-amber-400';
-  return 'bg-emerald-500';
-}
-
 export default function DemoExperience() {
   const [selectedId, setSelectedId] = useState(MOCK_IMAGES[0].id);
   const [analyzing, setAnalyzing] = useState(false);
@@ -111,6 +104,7 @@ export default function DemoExperience() {
       title: mTitle.trim(),
       content: mContent.trim(),
       category: mCategory,
+      status: '직접 제안',
       location: selected.location,
       likes: 0,
       comments: [],
