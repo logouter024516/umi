@@ -31,7 +31,7 @@ export default function TryApp() {
   const [secondsLeft, setSecondsLeft] = useState(5);
   const current = GUIDE_STEPS[guideIndex];
 
-  const discussionSummary = discussion?.content.replace(/\\s+/g, ' ').trim() ?? '';
+  const discussionSummary = discussion?.content.replace(/\s+/g, ' ').trim() ?? '';
   const discussionMessages = discussion ? [
     { role: '진행자', text: `“${discussion.title}” 제안이 공유됐어요. 핵심 내용은 “${discussionSummary.slice(0, 100)}${discussionSummary.length > 100 ? '…' : ''}”입니다.` },
     { role: '참여자 A', text: '실제로 적용하기 전에 현장 여건과 안전성, 유지관리 비용을 먼저 확인하면 좋겠어요.' },
