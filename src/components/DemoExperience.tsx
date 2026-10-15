@@ -86,7 +86,7 @@ export default function DemoExperience() {
   const submitMockProposal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!mAuthor.trim() || !mTitle.trim() || !mContent.trim() || !mCategory) {
-      alert('작성자, 제목, 내용, 카테고리를 모두 입력하세요. (데모)');
+      alert('작성자, 제목, 내용, 카테고리를 모두 입력하세요. (체험)');
       return;
     }
     const post: MockProposal = {
@@ -130,7 +130,7 @@ export default function DemoExperience() {
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="bg-slate-950 px-5 py-7 text-white sm:px-8 sm:py-9">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-orange-400/15 px-3 py-1 text-[11px] font-bold tracking-wide text-orange-200">GUIDED DEMO</span>
+            <span className="rounded-full bg-orange-400/15 px-3 py-1 text-[11px] font-bold tracking-wide text-orange-200">TRY LAB</span>
             <span className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-slate-300">예시 데이터 · 로컬 체험</span>
           </div>
           <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">4단계로 열섬 완화 과정을 체험해 보세요.</h2>
@@ -157,13 +157,13 @@ export default function DemoExperience() {
         </div>
         <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
           <span className="mt-0.5 text-amber-700" aria-hidden>ⓘ</span>
-          <p className="text-xs leading-5 text-amber-900"><strong>시연 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안과 댓글은 서버에 저장되지 않습니다.</p>
+          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안과 댓글은 서버에 저장되지 않습니다.</p>
         </div>
       </section>
 
       <div className="space-y-4">
             {/* STEP 1 */}
-            <section aria-label="목업 이미지 선택" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            <section aria-label="예시 이미지 선택" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between mb-3">
                 <h3 className="text-sm font-extrabold text-gray-900">STEP 1 · 장소 예시 고르기</h3>
                 <span className="text-[11px] text-gray-400">모바일: 좌우 스와이프</span>
@@ -218,7 +218,7 @@ export default function DemoExperience() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-[11px] text-gray-400">열 분포 · 표면 재질 · 녹피율을 스캔하고 있습니다 (시연용 연출)</p>
+                  <p className="text-[11px] text-gray-400">열 분포 · 표면 재질 · 녹피율을 스캔하고 있습니다 (예시로 보여주는 진행 효과)</p>
                 </div>
               )}
               {!analyzing && analyzed && (
@@ -255,7 +255,7 @@ export default function DemoExperience() {
                         onClick={applyToMockForm}
                         className="flex-1 min-h-[48px] px-5 text-sm font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:scale-[0.98] touch-manipulation shadow-sm"
                       >
-                        이 결과로 목업 제안서 쓰기 ↓
+                        이 결과로 예시 제안서 쓰기 ↓
                       </button>
 
                     </div>
@@ -320,7 +320,7 @@ export default function DemoExperience() {
                   id="demo-chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="의견 입력… (데모, 저장 안 됨)"
+                  placeholder="의견 입력… (체험, 저장 안 됨)"
                   autoComplete="off"
                   className="flex-1 min-h-[48px] px-3.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                 />
@@ -334,13 +334,13 @@ export default function DemoExperience() {
               </form>
             </section>
 
-            {/* STEP 4: 목업 제안서 — 실제 게시판(Supabase)과 완전 분리, 로컬 전용 */}
-            <section aria-label="목업 제안서 작성" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            {/* STEP 4: 예시 제안서 — 실제 게시판(Supabase)과 완전 분리, 로컬 전용 */}
+            <section aria-label="예시 제안서 작성" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between mb-1">
-                <h3 className="text-sm font-extrabold text-gray-900">STEP 4 · 목업 제안서 쓰기</h3>
+                <h3 className="text-sm font-extrabold text-gray-900">STEP 4 · 예시 제안서 쓰기</h3>
                 <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">로컬 전용 · 저장 안 됨</span>
               </div>
-              <p className="text-[11px] text-gray-400 mb-3">실제 게시판과 분리된 데모 공간입니다. Supabase 연결 없이 등록·공감·댓글을 체험할 수 있습니다.</p>
+              <p className="text-[11px] text-gray-400 mb-3">현재 브라우저에서 장소 선택부터 제안·공감·댓글까지 체험할 수 있습니다. 작성 내용은 이 페이지 안에서만 유지됩니다.</p>
               <div ref={mockFormRef} className="scroll-mt-4" />
               <form onSubmit={submitMockProposal} className="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -407,7 +407,7 @@ export default function DemoExperience() {
                     id="mock-content"
                     value={mContent}
                     onChange={(e) => setMContent(e.target.value)}
-                    placeholder="열섬 완화를 위한 구체적 제안을 작성하세요. (데모)"
+                    placeholder="열섬 완화를 위한 구체적 제안을 작성하세요. (체험)"
                     rows={3}
                     className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400 resize-none"
                   />
@@ -417,13 +417,13 @@ export default function DemoExperience() {
                     type="submit"
                     className="min-h-[48px] px-5 text-sm font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:scale-[0.98] touch-manipulation"
                   >
-                    목업 제안 등록
+                    예시 제안 등록
                   </button>
                 </div>
               </form>
 
               <div className="mt-4 space-y-3">
-                <p className="text-xs text-gray-400">{mockPosts.length}건의 목업 제안</p>
+                <p className="text-xs text-gray-400">{mockPosts.length}건의 예시 제안</p>
                 {mockPosts.map((p) => (
                   <article key={p.id} className="border border-gray-200 rounded-xl p-4">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1.5 flex-wrap">
@@ -465,7 +465,7 @@ export default function DemoExperience() {
                             value={commentInputs[p.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [p.id]: e.target.value })}
                             onKeyDown={(e) => e.key === 'Enter' && addMockComment(p.id)}
-                            placeholder="댓글 입력… (데모)"
+                            placeholder="댓글 입력… (체험)"
                             autoComplete="off"
                             className="flex-1 min-h-[44px] px-3 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400"
                           />
