@@ -18,6 +18,7 @@ export default function DemoExperience() {
   const [activeStep, setActiveStep] = useState(1);
   const [draftGenerated, setDraftGenerated] = useState(false);
   const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
+  const [submitMessage, setSubmitMessage] = useState('');
   const mockFormRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number>(0);
 
@@ -94,8 +95,9 @@ export default function DemoExperience() {
 
   const submitMockProposal = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitMessage('');
     if (!mAuthor.trim() || !mTitle.trim() || !mContent.trim() || !mCategory) {
-      alert('작성자, 제목, 내용, 카테고리를 모두 입력하세요.');
+      setSubmitMessage('작성자, 제목, 내용, 카테고리를 모두 확인해 주세요.');
       return;
     }
     const post: MockProposal = {
@@ -118,53 +120,37 @@ export default function DemoExperience() {
     setDraftGenerated(false);
     setDraftScenarioId(null);
     setActiveStep(3);
-    alert('제안이 등록되었어요. 이번 체험 페이지에서만 확인할 수 있습니다.');
+    setSubmitMessage('제안이 등록됐어요. 아래에서 제안에 대한 토론 예시를 확인해 보세요.');
   };
 
   return (
     <div className="space-y-4">
-      {/* Demo introduction and tutorial */}
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="bg-slate-950 px-5 py-7 text-white sm:px-8 sm:py-9">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-orange-400/15 px-3 py-1 text-[11px] font-bold tracking-wide text-orange-200">TRY LAB</span>
-            <span className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-slate-300">예시 데이터 · 로컬 체험</span>
-          </div>
-          <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">3단계로 열섬 완화 제안을 만들어 보세요.</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">장소를 고르면 결과가 열리고, 결과를 확인하면 제안서 작성 단계가 열립니다. 각 단계에서 해야 할 일은 하나씩만 안내합니다.</p>
-          <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
-            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 설치 불필요</span>
-            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 장소 맞춤 제안서 자동 작성</span>
-            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 새로고침 시 초기화</span>
-          </div>
+      {/* Focused introduction and progress */}
+      <section className="bg-white px-5 py-6 sm:px-7 sm:py-7">
+        <div className="max-w-3xl">
+          <h2 className="max-w-2xl text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">장소를 고르고, 제안을 완성하세요.</h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">장소 예시를 선택하면 결과가 열리고, 그 결과를 바탕으로 제안 초안을 작성할 수 있어요.</p>
+          <p className="mt-3 text-sm leading-6 text-slate-500">모든 결과는 체험용 예시이며, 작성한 제안은 서버에 저장되지 않습니다.</p>
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-3 sm:p-5" aria-label="체험 진행 단계">
+        <ol className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3" aria-label="체험 진행 단계">
           {[
-            { n: '01', title: '장소 선택', hint: '장소 카드를 선택하세요.' },
-            { n: '02', title: '결과 확인', hint: '분류 결과와 제안 가이드를 확인하세요.' },
-            { n: '03', title: '제안서 작성', hint: '초안을 생성하고 수정하세요.' },
+            { title: '장소 선택', hint: '체험할 장소를 고르세요.' },
+            { title: '결과 확인', hint: '예시 결과와 제안 가이드를 살펴보세요.' },
+            { title: '제안서 작성', hint: '초안을 검토하고 등록하세요.' },
           ].map((step, i) => {
             const number = i + 1;
             const completed = activeStep > number;
             const current = activeStep === number;
             return (
-              <div
-                key={step.n}
-                aria-current={current ? 'step' : undefined}
-                className={`rounded-2xl border p-3 sm:p-4 ${current ? 'border-orange-300 bg-orange-50 shadow-sm' : completed ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-100 bg-slate-50 opacity-60'}`}
-              >
-                <span className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-black tracking-widest ${current ? 'bg-orange-500 text-white' : completed ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400'}`}>{completed ? '✓' : step.n}</span>
-                <p className="mt-2 text-sm font-extrabold text-slate-900">{step.title}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">{step.hint}</p>
-                <p className={`mt-2 text-[10px] font-bold ${current ? 'text-orange-700' : completed ? 'text-emerald-700' : 'text-slate-400'}`}>{current ? '진행 중' : completed ? '완료' : '이전 단계를 완료하면 열려요'}</p>
-              </div>
+              <li key={step.title} aria-current={current ? 'step' : undefined} className="min-w-0">
+                <div className={`mb-3 h-1 w-10 rounded-full ${current ? 'bg-orange-500' : completed ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                <p className={`text-sm font-bold ${current ? 'text-slate-950' : completed ? 'text-emerald-800' : 'text-slate-500'}`}>{step.title}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">{step.hint}</p>
+                <p className={`mt-2 text-xs font-semibold ${current ? 'text-orange-700' : completed ? 'text-emerald-700' : 'text-slate-400'}`}>{current ? '지금 할 일' : completed ? '완료' : '다음 단계'}</p>
+              </li>
             );
           })}
-        </div>
-        <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
-          <span className="mt-0.5 text-amber-700" aria-hidden>ⓘ</span>
-          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안은 서버에 저장되지 않습니다.</p>
-        </div>
+        </ol>
       </section>
 
       <div className="space-y-4">
@@ -304,6 +290,7 @@ export default function DemoExperience() {
                     <label htmlFor="mock-author" className="block text-xs text-gray-500 mb-1">작성자 *</label>
                     <input
                       id="mock-author"
+                      required
                       value={mAuthor}
                       onChange={(e) => setMAuthor(e.target.value)}
                       placeholder="이름 입력"
@@ -315,6 +302,7 @@ export default function DemoExperience() {
                     <label htmlFor="mock-category" className="block text-xs text-gray-500 mb-1">카테고리 *</label>
                     <select
                       id="mock-category"
+                      required
                       value={mCategory}
                       onChange={(e) => setMCategory(e.target.value as Category)}
                       className="w-full min-h-[48px] px-3 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400"
@@ -339,6 +327,7 @@ export default function DemoExperience() {
                   <label htmlFor="mock-title" className="block text-xs text-gray-500 mb-1">제목 *</label>
                   <input
                     id="mock-title"
+                    required
                     value={mTitle}
                     onChange={(e) => setMTitle(e.target.value)}
                     placeholder="제안 제목"
@@ -350,6 +339,7 @@ export default function DemoExperience() {
                   <label htmlFor="mock-content" className="block text-xs text-gray-500 mb-1">상세 내용 *</label>
                   <textarea
                     id="mock-content"
+                    required
                     value={mContent}
                     onChange={(e) => setMContent(e.target.value)}
                     placeholder="열섬 완화를 위한 구체적 제안을 작성하세요."
@@ -358,7 +348,7 @@ export default function DemoExperience() {
                   />
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => { setMAuthor(''); setMTitle(''); setMContent(''); setMCategory(''); setDraftGenerated(false); setDraftScenarioId(null); }} className="min-h-[48px] rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+                  <button type="button" onClick={() => { setMAuthor(''); setMTitle(''); setMContent(''); setMCategory(''); setDraftGenerated(false); setDraftScenarioId(null); setSubmitMessage(''); }} className="min-h-[48px] rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 hover:bg-gray-50">
                     입력 지우기
                   </button>
                   <button
@@ -369,6 +359,10 @@ export default function DemoExperience() {
                   </button>
                 </div>
               </form>
+
+              {submitMessage && (
+                <p role="status" aria-live="polite" className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">{submitMessage}</p>
+              )}
 
               {mockPosts.length > 0 && (
                 <div className="mt-5 space-y-3" aria-live="polite">
