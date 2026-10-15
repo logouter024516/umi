@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import DemoExperience from './components/DemoExperience';
 
 const GUIDE_STEPS = [
@@ -29,6 +29,7 @@ export default function TryApp() {
   const [discussionVisibleCount, setDiscussionVisibleCount] = useState(0);
   const [endModalOpen, setEndModalOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(5);
+  const discussionSectionRef = useRef<HTMLElement | null>(null);
   const current = GUIDE_STEPS[guideIndex];
 
   const discussionSummary = discussion?.content.replace(/\s+/g, ' ').trim() ?? '';
@@ -61,6 +62,17 @@ export default function TryApp() {
     }, 1100);
     return () => window.clearTimeout(timer);
   }, [discussion, discussionVisibleCount, discussionMessages.length]);
+
+  useEffect(() => {
+    if (!discussion) return;
+    const timer = window.setTimeout(() => {
+      discussionSectionRef.current?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [discussion]);
 
   useEffect(() => {
     if (!endModalOpen) return;
@@ -137,7 +149,7 @@ export default function TryApp() {
         <DemoExperience />
 
         {discussion && (
-          <section className="mt-6 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm" aria-label="제안 기반 토론 시뮬레이션">
+          <section ref={discussionSectionRef} tabIndex={-1} className="mt-6 scroll-mt-24 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm focus:outline-none" aria-label="제안 기반 토론 시뮬레이션">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50 px-5 py-4">
               <div>
                 <p className="text-xs font-black tracking-wide text-emerald-700">TRY LAB · DISCUSSION</p>
