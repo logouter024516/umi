@@ -35,6 +35,7 @@ export default function DemoExperience() {
   const [expandedMock, setExpandedMock] = useState<number | null>(MOCK_PROPOSALS[0].id);
   const [activeStep, setActiveStep] = useState(1);
   const [draftGenerated, setDraftGenerated] = useState(false);
+  const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mockFormRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number>(0);
@@ -124,6 +125,7 @@ export default function DemoExperience() {
     setMTitle(draft.title);
     setMCategory(draft.category);
     setMContent(draft.content);
+    setDraftScenarioId(selected.id);
     setAppliedStatus(`${selected.probs[0].className} (${(selected.probs[0].probability * 100).toFixed(0)}%)`);
     setDraftGenerated(true);
     setActiveStep(4);
@@ -158,6 +160,7 @@ export default function DemoExperience() {
     setMContent('');
     setMCategory('');
     setDraftGenerated(false);
+    setDraftScenarioId(null);
     setActiveStep(4);
   };
 
@@ -424,6 +427,7 @@ export default function DemoExperience() {
                   </button>
                 </div>
                 {draftGenerated && <p role="status" className="mt-3 text-xs font-semibold text-emerald-700">초안이 작성됐어요. 제목과 내용을 확인한 뒤 필요한 부분을 수정하세요.</p>}
+                {draftScenarioId && draftScenarioId !== selected.id && (mTitle.trim() || mContent.trim()) && <p role="status" className="mt-3 text-xs leading-5 font-semibold text-amber-800">선택 장소가 바뀌었어요. 입력된 초안은 이전 장소 기준이므로, 새 장소에 맞추려면 자동 작성 버튼을 다시 눌러 주세요.</p>}
               </div>
               <form onSubmit={submitMockProposal} className="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -496,7 +500,7 @@ export default function DemoExperience() {
                   />
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => { setMTitle(''); setMContent(''); setMCategory(''); setDraftGenerated(false); }} className="min-h-[48px] rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+                  <button type="button" onClick={() => { setMAuthor(''); setMTitle(''); setMContent(''); setMCategory(''); setDraftGenerated(false); setDraftScenarioId(null); }} className="min-h-[48px] rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 hover:bg-gray-50">
                     입력 지우기
                   </button>
                   <button
