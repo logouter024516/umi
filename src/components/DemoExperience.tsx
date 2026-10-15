@@ -86,7 +86,7 @@ export default function DemoExperience() {
   const submitMockProposal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!mAuthor.trim() || !mTitle.trim() || !mContent.trim() || !mCategory) {
-      alert('작성자, 제목, 내용, 카테고리를 모두 입력하세요. (체험)');
+      alert('작성자, 제목, 내용, 카테고리를 모두 입력하세요.');
       return;
     }
     const post: MockProposal = {
@@ -407,7 +407,7 @@ export default function DemoExperience() {
                     id="mock-content"
                     value={mContent}
                     onChange={(e) => setMContent(e.target.value)}
-                    placeholder="열섬 완화를 위한 구체적 제안을 작성하세요. (체험)"
+                    placeholder="열섬 완화를 위한 구체적 제안을 작성하세요."
                     rows={3}
                     className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400 resize-none"
                   />
@@ -465,7 +465,7 @@ export default function DemoExperience() {
                             value={commentInputs[p.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [p.id]: e.target.value })}
                             onKeyDown={(e) => e.key === 'Enter' && addMockComment(p.id)}
-                            placeholder="댓글 입력… (체험)"
+                            placeholder="댓글 입력…"
                             autoComplete="off"
                             className="flex-1 min-h-[44px] px-3 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400"
                           />
