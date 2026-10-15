@@ -3,27 +3,21 @@ import DemoExperience from './components/DemoExperience';
 
 const GUIDE_STEPS = [
   {
-    eyebrow: 'STEP 1 OF 4',
-    title: '관심 있는 장소를 골라보세요',
-    description: '체험 페이지에서 카드 형태로 제공되는 예시 장소 중 하나를 선택합니다. 선택한 장소를 기준으로 체험 흐름이 바뀝니다.',
+    eyebrow: 'STEP 1 OF 3',
+    title: '장소를 선택하세요',
+    description: '예시 장소 카드 중 하나를 누르면 결과 확인 단계가 열립니다.',
     icon: '⌖',
   },
   {
-    eyebrow: 'STEP 2 OF 4',
-    title: '분류 결과와 아이디어를 확인하세요',
-    description: '진행 표시가 끝나면 예시 분류 결과와 열섬 완화에 참고할 아이디어를 살펴보세요. 화면의 수치는 실제 측정 결과가 아닙니다.',
+    eyebrow: 'STEP 2 OF 3',
+    title: '결과를 확인하세요',
+    description: '예시 분류 결과와 제안 가이드를 확인한 다음, ‘제안서 작성’ 버튼을 누르세요. 실제 AI 추론이나 실측 데이터는 아닙니다.',
     icon: '◉',
   },
   {
-    eyebrow: 'STEP 3 OF 4',
-    title: '토론 영역에서 의견을 남겨보세요',
-    description: '빠른 답변을 누르거나 직접 메시지를 입력해 대화 흐름을 체험할 수 있습니다. 메시지는 이 페이지 안에서만 유지됩니다.',
-    icon: '↗',
-  },
-  {
-    eyebrow: 'STEP 4 OF 4',
-    title: '제안서를 작성하고 등록해보세요',
-    description: '제안서 작성 단계에서 ‘선택 장소에 맞춰 자동 작성’ 버튼을 누르면 제목·분야·내용이 채워져요. 내용을 자유롭게 고친 뒤 작성자 이름을 입력하고 등록해 보세요. 제안·공감·댓글은 이 페이지 안에서만 유지됩니다.',
+    eyebrow: 'STEP 3 OF 3',
+    title: '제안서를 완성하세요',
+    description: '선택 장소에 맞춰 자동 작성 버튼을 누르면 제목·분야·내용이 채워집니다. 내용을 검토·수정하고 작성자 이름을 입력한 뒤 등록하세요.',
     icon: '✳',
   },
 ];
