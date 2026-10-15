@@ -42,7 +42,8 @@ export default function DemoExperience() {
 
   const handleSelect = (id: string) => {
     if (id === selectedId && analyzedId === id) {
-      goToStep(2);
+      setActiveStep(2);
+      window.setTimeout(() => document.getElementById('try-step-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
       return;
     }
     window.clearInterval(timerRef.current);
@@ -133,7 +134,8 @@ export default function DemoExperience() {
     setMCategory('');
     setDraftGenerated(false);
     setDraftScenarioId(null);
-    setActiveStep(4);
+    setActiveStep(3);
+    alert('제안이 등록되었어요. 이번 체험 페이지에서만 확인할 수 있습니다.');
   };
 
   return (
@@ -178,7 +180,7 @@ export default function DemoExperience() {
         </div>
         <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
           <span className="mt-0.5 text-amber-700" aria-hidden>ⓘ</span>
-          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안과 댓글은 서버에 저장되지 않습니다.</p>
+          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안은 서버에 저장되지 않습니다.</p>
         </div>
       </section>
 
