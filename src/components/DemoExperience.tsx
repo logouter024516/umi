@@ -129,7 +129,7 @@ export default function DemoExperience() {
     setActiveStep(4);
     window.setTimeout(() => {
       mockFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      document.getElementById('mock-title')?.focus({ preventScroll: true });
+      document.getElementById('mock-author')?.focus({ preventScroll: true });
     }, 40);
   };
 
@@ -406,6 +406,12 @@ export default function DemoExperience() {
                 <span className="text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-600">작성 내용은 이 페이지에서만 유지</span>
               </div>
               <p className="text-sm leading-6 text-gray-600 mb-3">직접 작성해도 되고, 아래 버튼으로 <strong>{selected.title}</strong>에 맞는 초안을 자동으로 채운 다음 수정해도 됩니다.</p>
+              <ol className="mb-4 grid gap-2 text-xs text-gray-600 sm:grid-cols-4" aria-label="제안서 작성 순서">
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">1. 초안 자동 작성</strong>선택 장소에 맞춰 채우기</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">2. 작성자 입력</strong>이름은 직접 입력</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">3. 검토·수정</strong>내용은 자유롭게 편집</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">4. 제안 등록</strong>아래 버튼으로 완료</li>
+              </ol>
               <div ref={mockFormRef} className="scroll-mt-24" />
               <div className="mb-3 rounded-2xl border border-orange-200 bg-orange-50/70 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
