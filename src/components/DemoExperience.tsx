@@ -93,12 +93,7 @@ export default function DemoExperience() {
       { id: Date.now(), author: '나', role: '나', text: t, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) },
     ]);
     setInput('');
-  };
-
-  const applyToMockForm = () => {
-    if (!analyzed) return;
-    setAppliedStatus(`${analyzed.probs[0].className} (${(analyzed.probs[0].probability * 100).toFixed(0)}%)`);
-    mockFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveStep(3);
   };
 
   const generateProposalDraft = () => {
