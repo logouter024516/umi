@@ -41,7 +41,6 @@ export default function DemoExperience() {
     }
     window.clearInterval(timerRef.current);
     setSelectedId(id);
-    const nextScenario = MOCK_IMAGES.find((item) => item.id === id)!;
     setDraftGenerated(false);
     setActiveStep(2);
     setAnalyzedId(null);
