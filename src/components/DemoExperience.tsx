@@ -277,7 +277,6 @@ export default function DemoExperience() {
               )}
             </section>}
 
-            {/* STEP 3 */}
             {/* STEP 3: 제안서 작성은 결과 확인 후 열립니다. */}
 
             {activeStep >= 3 && <section id="try-step-proposal" aria-label="3단계: 예시 제안서 작성" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
@@ -341,7 +340,6 @@ export default function DemoExperience() {
                       value={selected.location}
                       className="w-full min-h-[48px] px-3 text-sm border border-gray-100 rounded-lg bg-gray-100 text-gray-500"
                     />
-                  </div>
                 </div>
                 <div>
                   <label htmlFor="mock-title" className="block text-xs text-gray-500 mb-1">제목 *</label>
