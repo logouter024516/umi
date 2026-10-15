@@ -1,73 +1,42 @@
 import { useState, useRef, useEffect } from 'react';
-import { MOCK_IMAGES, MOCK_CHAT, QUICK_REPLIES, MOCK_PROPOSALS } from '../data/mockDemo';
-import type { MockMessage, MockProposal } from '../data/mockDemo';
+import { MOCK_IMAGES } from '../data/mockDemo';
+import type { MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
 import ScenarioIllustration from './ScenarioIllustration';
 import type { Category } from '../types';
-
-const AVATAR: Record<string, { bg: string; emoji: string }> = {
-  시민: { bg: 'bg-emerald-100 text-emerald-700', emoji: '🧑' },
-  연구원: { bg: 'bg-blue-100 text-blue-700', emoji: '🔬' },
-  나: { bg: 'bg-orange-500 text-white', emoji: '🙂' },
-};
-
-function tempColor(t: number) {
-  if (t >= 37) return 'bg-red-500';
-  if (t >= 33) return 'bg-orange-400';
-  if (t >= 30) return 'bg-amber-400';
-  return 'bg-emerald-500';
-}
 
 export default function DemoExperience() {
   const [selectedId, setSelectedId] = useState(MOCK_IMAGES[0].id);
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [analyzedId, setAnalyzedId] = useState<string | null>(MOCK_IMAGES[0].id);
-  const [messages, setMessages] = useState<MockMessage[]>(MOCK_CHAT[MOCK_IMAGES[0].id]);
-  const [input, setInput] = useState('');
-  const [mockPosts, setMockPosts] = useState<MockProposal[]>(MOCK_PROPOSALS);
+  const [mockPosts, setMockPosts] = useState<MockProposal[]>([]);
   const [mAuthor, setMAuthor] = useState('');
   const [mTitle, setMTitle] = useState('');
   const [mContent, setMContent] = useState('');
   const [mCategory, setMCategory] = useState<Category | ''>('');
-  const [appliedStatus, setAppliedStatus] = useState(`${MOCK_IMAGES[0].probs[0].className} (${(MOCK_IMAGES[0].probs[0].probability * 100).toFixed(0)}%)`);
-  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
-  const [expandedMock, setExpandedMock] = useState<number | null>(MOCK_PROPOSALS[0].id);
   const [activeStep, setActiveStep] = useState(1);
   const [draftGenerated, setDraftGenerated] = useState(false);
   const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const mockFormRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number>(0);
 
   const selected = MOCK_IMAGES.find((m) => m.id === selectedId)!;
   const analyzed = MOCK_IMAGES.find((m) => m.id === analyzedId);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages, selectedId]);
-
   useEffect(() => () => window.clearInterval(timerRef.current), []);
-
-  const goToStep = (step: number) => {
-    const targets = ['try-step-place', 'try-step-result', 'try-step-discuss', 'try-step-proposal'];
-    setActiveStep(step);
-    document.getElementById(targets[step - 1])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   const handleSelect = (id: string) => {
     if (id === selectedId && analyzedId === id) {
-      goToStep(2);
+      setActiveStep(2);
+      window.setTimeout(() => document.getElementById('try-step-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
       return;
     }
     window.clearInterval(timerRef.current);
     setSelectedId(id);
-    const nextScenario = MOCK_IMAGES.find((item) => item.id === id)!;
-    setAppliedStatus(`${nextScenario.probs[0].className} (${(nextScenario.probs[0].probability * 100).toFixed(0)}%)`);
     setDraftGenerated(false);
     setActiveStep(2);
     setAnalyzedId(null);
-    setMessages(MOCK_CHAT[id]);
     setAnalyzing(true);
     setProgress(8);
     window.setTimeout(() => {
@@ -84,17 +53,6 @@ export default function DemoExperience() {
         return p + 14;
       });
     }, 120);
-  };
-
-  const sendMessage = (text: string) => {
-    const t = text.trim();
-    if (!t) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now(), author: '나', role: '나', text: t, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) },
-    ]);
-    setInput('');
-    setActiveStep(3);
   };
 
   const generateProposalDraft = () => {
@@ -126,9 +84,8 @@ export default function DemoExperience() {
     setMCategory(draft.category);
     setMContent(draft.content);
     setDraftScenarioId(selected.id);
-    setAppliedStatus(`${selected.probs[0].className} (${(selected.probs[0].probability * 100).toFixed(0)}%)`);
     setDraftGenerated(true);
-    setActiveStep(4);
+    setActiveStep(3);
     window.setTimeout(() => {
       mockFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       document.getElementById('mock-author')?.focus({ preventScroll: true });
@@ -147,36 +104,21 @@ export default function DemoExperience() {
       title: mTitle.trim(),
       content: mContent.trim(),
       category: mCategory,
-      status: appliedStatus || '직접 제안',
+      status: '직접 제안',
       location: selected.location,
       likes: 0,
       comments: [],
       created_at: new Date().toLocaleDateString('ko-KR'),
     };
     setMockPosts((prev) => [post, ...prev]);
-    setExpandedMock(post.id);
     setMAuthor('');
     setMTitle('');
     setMContent('');
     setMCategory('');
     setDraftGenerated(false);
     setDraftScenarioId(null);
-    setActiveStep(4);
-  };
-
-  const likeMock = (id: number) => {
-    setMockPosts((prev) => prev.map((p) => (p.id === id ? { ...p, likes: p.likes + 1 } : p)));
-  };
-
-  const addMockComment = (id: number) => {
-    const text = (commentInputs[id] || '').trim();
-    if (!text) return;
-    setMockPosts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, comments: [...p.comments, { id: Date.now(), author: '나', text }] } : p
-      )
-    );
-    setCommentInputs((prev) => ({ ...prev, [id]: '' }));
+    setActiveStep(3);
+    alert('제안이 등록되었어요. 이번 체험 페이지에서만 확인할 수 있습니다.');
   };
 
   return (
@@ -188,38 +130,40 @@ export default function DemoExperience() {
             <span className="rounded-full bg-orange-400/15 px-3 py-1 text-[11px] font-bold tracking-wide text-orange-200">TRY LAB</span>
             <span className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-slate-300">예시 데이터 · 로컬 체험</span>
           </div>
-          <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">4단계로 열섬 완화 과정을 체험해 보세요.</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">장소를 선택하고, 예시 분류 결과를 살펴본 뒤, 토론과 제안 작성까지 이어집니다. 별도 계정 없이 인터랙션을 둘러볼 수 있습니다.</p>
+          <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">3단계로 열섬 완화 제안을 만들어 보세요.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">장소를 고르면 결과가 열리고, 결과를 확인하면 제안서 작성 단계가 열립니다. 각 단계에서 해야 할 일은 하나씩만 안내합니다.</p>
           <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
             <span className="rounded-lg bg-white/10 px-3 py-2">✓ 설치 불필요</span>
-            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 제안·댓글 상호작용</span>
+            <span className="rounded-lg bg-white/10 px-3 py-2">✓ 장소 맞춤 제안서 자동 작성</span>
             <span className="rounded-lg bg-white/10 px-3 py-2">✓ 새로고침 시 초기화</span>
           </div>
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-4 sm:p-5" aria-label="체험 진행 단계">
+        <div className="grid gap-2 p-4 sm:grid-cols-3 sm:p-5" aria-label="체험 진행 단계">
           {[
-            { n: '01', title: '장소 선택', hint: '카드 하나를 누르세요.' },
-            { n: '02', title: '결과 확인', hint: '장소별 예시 결과를 봅니다.' },
-            { n: '03', title: '의견 남기기', hint: '토론은 선택 사항이에요.' },
-            { n: '04', title: '제안서 작성', hint: '자동 작성 후 직접 수정하세요.' },
-          ].map((step, i) => (
-            <button
-              type="button"
-              key={step.n}
-              onClick={() => goToStep(i + 1)}
-              aria-current={activeStep === i + 1 ? 'step' : undefined}
-              className={`rounded-2xl border p-3 text-left transition sm:p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 ${activeStep === i + 1 ? 'border-orange-300 bg-orange-50 shadow-sm' : 'border-slate-100 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}
-            >
-              <span className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-black tracking-widest ${activeStep === i + 1 ? 'bg-orange-500 text-white' : 'bg-white text-slate-400'}`}>{step.n}</span>
-              <p className="mt-2 text-sm font-extrabold text-slate-900">{step.title}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">{step.hint}</p>
-              <p className={`mt-2 text-[10px] font-bold ${activeStep === i + 1 ? 'text-orange-700' : 'text-slate-400'}`}>{activeStep === i + 1 ? '현재 단계' : '이동하기 →'}</p>
-            </button>
-          ))}
+            { n: '01', title: '장소 선택', hint: '장소 카드를 선택하세요.' },
+            { n: '02', title: '결과 확인', hint: '분류 결과와 제안 가이드를 확인하세요.' },
+            { n: '03', title: '제안서 작성', hint: '초안을 생성하고 수정하세요.' },
+          ].map((step, i) => {
+            const number = i + 1;
+            const completed = activeStep > number;
+            const current = activeStep === number;
+            return (
+              <div
+                key={step.n}
+                aria-current={current ? 'step' : undefined}
+                className={`rounded-2xl border p-3 sm:p-4 ${current ? 'border-orange-300 bg-orange-50 shadow-sm' : completed ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-100 bg-slate-50 opacity-60'}`}
+              >
+                <span className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-black tracking-widest ${current ? 'bg-orange-500 text-white' : completed ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400'}`}>{completed ? '✓' : step.n}</span>
+                <p className="mt-2 text-sm font-extrabold text-slate-900">{step.title}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{step.hint}</p>
+                <p className={`mt-2 text-[10px] font-bold ${current ? 'text-orange-700' : completed ? 'text-emerald-700' : 'text-slate-400'}`}>{current ? '진행 중' : completed ? '완료' : '이전 단계를 완료하면 열려요'}</p>
+              </div>
+            );
+          })}
         </div>
         <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
           <span className="mt-0.5 text-amber-700" aria-hidden>ⓘ</span>
-          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안과 댓글은 서버에 저장되지 않습니다.</p>
+          <p className="text-xs leading-5 text-amber-900"><strong>예시 데이터 안내:</strong> 이 페이지의 진행률·온도·분류 확률은 미리 준비한 예시를 보여주는 연출입니다. 실제 AI 추론이나 실측 온도 데이터가 아니며, 이 화면에서 작성한 제안은 서버에 저장되지 않습니다.</p>
         </div>
       </section>
 
@@ -267,7 +211,7 @@ export default function DemoExperience() {
             </section>
 
             {/* STEP 2 */}
-            <section id="try-step-result" aria-label="2단계: 예시 분류 결과" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            {activeStep >= 2 && <section id="try-step-result" aria-label="2단계: 예시 분류 결과" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <h3 className="text-sm font-extrabold text-gray-900 mb-3">STEP 2 · 예시 분류 결과</h3>
               {analyzing && (
                 <div className="py-6" aria-live="polite">
@@ -315,105 +259,30 @@ export default function DemoExperience() {
                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <button
                         type="button"
-                        onClick={() => goToStep(3)}
+                        onClick={() => { setActiveStep(3); window.setTimeout(() => document.getElementById("try-step-proposal")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}
                         className="flex-1 min-h-[48px] px-5 text-sm font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:scale-[0.98] touch-manipulation shadow-sm"
                       >
-                        다음 단계: 의견 나누기 ↓
+                        다음 단계: 제안서 작성 ↓
                       </button>
 
                     </div>
                   </div>
                 </div>
               )}
-            </section>
+            </section>}
 
-            {/* STEP 3 */}
-            <section id="try-step-discuss" aria-label="3단계: 의견 나누기" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
-              <div className="flex items-baseline justify-between mb-3">
-                <h3 className="text-sm font-extrabold text-gray-900">STEP 3 · 현장 토론 채팅</h3>
-                <span className="text-[11px] text-gray-400">{selected.title} · {messages.length}건</span>
-              </div>
-              <div className="h-72 overflow-y-auto space-y-3 bg-gray-50 rounded-xl p-3 border border-gray-100 overscroll-contain [-webkit-overflow-scrolling:touch]">
-                {messages.map((m) => (
-                  <div key={m.id} className={`flex gap-2 ${m.role === '나' ? 'justify-end' : 'justify-start'}`}>
-                    {m.role !== '나' && (
-                      <span className={`w-8 h-8 rounded-full shrink-0 inline-flex items-center justify-center text-sm font-bold ${AVATAR[m.role].bg}`} aria-hidden>
-                        {AVATAR[m.role].emoji}
-                      </span>
-                    )}
-                    <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                      m.role === '나'
-                        ? 'bg-orange-500 text-white rounded-br-md'
-                        : m.role === '연구원'
-                          ? 'bg-white text-gray-800 border border-blue-200 rounded-bl-md'
-                          : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
-                    }`}>
-                      {m.role !== '나' && (
-                        <p className="text-[10px] font-bold mb-0.5">
-                          <span className={m.role === '연구원' ? 'text-blue-600' : 'text-emerald-600'}>{m.author} · {m.role}</span>
-                          <span className="text-gray-400 font-normal"> · {m.time}</span>
-                        </p>
-                      )}
-                      <p>{m.text}</p>
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-              <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
-                {QUICK_REPLIES.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => sendMessage(q)}
-                    className="shrink-0 min-h-[44px] px-3.5 text-[13px] border border-gray-200 rounded-full bg-white text-gray-600 hover:border-orange-300 hover:text-orange-600 active:scale-95 touch-manipulation"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-              <form
-                className="flex gap-2 mt-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendMessage(input);
-                }}
-              >
-                <label htmlFor="demo-chat-input" className="sr-only">의견 입력</label>
-                <input
-                  id="demo-chat-input"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="의견 입력…"
-                  autoComplete="off"
-                  className="flex-1 min-h-[48px] px-3.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                />
-                <button
-                  type="submit"
-                  className="min-h-[48px] min-w-[72px] px-5 text-sm font-bold bg-gray-900 text-white rounded-xl active:scale-95 touch-manipulation disabled:opacity-40"
-                  disabled={!input.trim()}
-                >
-                  전송
-                </button>
-              </form>
-              <div className="mt-4 flex justify-end">
-                <button type="button" onClick={() => goToStep(4)} className="min-h-[44px] rounded-xl bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800">
-                  다음 단계: 제안서 작성 ↓
-                </button>
-              </div>
-            </section>
+            {/* STEP 3: 제안서 작성은 결과 확인 후 열립니다. */}
 
-            {/* STEP 4: 예시 제안서 — 실제 게시판(Supabase)과 완전 분리, 로컬 전용 */}
-            <section id="try-step-proposal" aria-label="4단계: 예시 제안서 작성" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            {activeStep >= 3 && <section id="try-step-proposal" aria-label="3단계: 예시 제안서 작성" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                <h3 className="text-sm font-extrabold text-gray-900">STEP 4 · 예시 제안서 쓰기</h3>
+                <h3 className="text-sm font-extrabold text-gray-900">STEP 3 · 제안서 작성</h3>
                 <span className="text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-600">작성 내용은 이 페이지에서만 유지</span>
               </div>
               <p className="text-sm leading-6 text-gray-600 mb-3">직접 작성해도 되고, 아래 버튼으로 <strong>{selected.title}</strong>에 맞는 초안을 자동으로 채운 다음 수정해도 됩니다.</p>
-              <ol className="mb-4 grid gap-2 text-xs text-gray-600 sm:grid-cols-4" aria-label="제안서 작성 순서">
-                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">1. 초안 자동 작성</strong>선택 장소에 맞춰 채우기</li>
-                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">2. 작성자 입력</strong>이름은 직접 입력</li>
-                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">3. 검토·수정</strong>내용은 자유롭게 편집</li>
-                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">4. 제안 등록</strong>아래 버튼으로 완료</li>
+              <ol className="mb-4 grid gap-2 text-xs text-gray-600 sm:grid-cols-3" aria-label="제안서 작성 순서">
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">1. 초안 생성</strong>선택 장소에 맞춰 채우기</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">2. 확인·수정</strong>제목과 내용을 검토</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">3. 등록</strong>작성자 입력 후 완료</li>
               </ol>
               <div ref={mockFormRef} className="scroll-mt-24" />
               <div className="mb-3 rounded-2xl border border-orange-200 bg-orange-50/70 p-4">
@@ -457,25 +326,14 @@ export default function DemoExperience() {
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="mock-status" className="block text-xs text-gray-500 mb-1">예시 분류 결과 (자동)</label>
-                    <input
-                      id="mock-status"
-                      disabled
-                      value={appliedStatus || '장소 선택 후 자동 기입'}
-                      className="w-full min-h-[48px] px-3 text-sm border border-gray-100 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="mock-location" className="block text-xs text-gray-500 mb-1">위치 (자동)</label>
+                <div>
+                  <label htmlFor="mock-location" className="block text-xs text-gray-500 mb-1">선택한 장소</label>
                     <input
                       id="mock-location"
                       disabled
                       value={selected.location}
                       className="w-full min-h-[48px] px-3 text-sm border border-gray-100 rounded-lg bg-gray-100 text-gray-500"
                     />
-                  </div>
                 </div>
                 <div>
                   <label htmlFor="mock-title" className="block text-xs text-gray-500 mb-1">제목 *</label>
@@ -512,66 +370,23 @@ export default function DemoExperience() {
                 </div>
               </form>
 
-              <div className="mt-4 space-y-3">
-                <p className="text-xs text-gray-400">{mockPosts.length}건의 예시 제안</p>
-                {mockPosts.map((p) => (
-                  <article key={p.id} className="border border-gray-200 rounded-xl p-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1.5 flex-wrap">
-                      <span className="font-bold text-gray-700">{p.author}</span>
-                      <span className="text-gray-300">|</span>
-                      <span>{p.created_at}</span>
-                      {p.location && <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">{p.location}</span>}
-                      {p.category && <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded">{p.category}</span>}
-                      {p.status && p.status !== '직접 제안' && (
-                        <span className="px-1.5 py-0.5 bg-gray-50 text-gray-500 border border-gray-100 rounded text-[10px]">{p.status}</span>
-                      )}
-                    </div>
-                    <h4 className="text-sm font-bold text-gray-900">{p.title}</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap mt-0.5">{p.content}</p>
-                    <div className="flex items-center gap-4 mt-2.5 pt-2.5 border-t border-gray-100">
-                      <button onClick={() => likeMock(p.id)} aria-label={`${p.title} 좋아요`} className="min-h-[44px] flex items-center gap-1 text-xs text-gray-500 hover:text-orange-500 active:scale-95 touch-manipulation">
-                        좋아요 <span className="font-bold">{p.likes}</span>
-                      </button>
-                      <button
-                        onClick={() => setExpandedMock(expandedMock === p.id ? null : p.id)}
-                        aria-expanded={expandedMock === p.id}
-                        className="min-h-[44px] text-xs text-gray-500 hover:text-orange-500 touch-manipulation"
-                      >
-                        댓글 {p.comments.length}개
-                      </button>
-                    </div>
-                    {expandedMock === p.id && (
-                      <div className="mt-2 bg-gray-50 rounded-lg p-3 space-y-2">
-                        {p.comments.map((c) => (
-                          <p key={c.id} className="text-xs">
-                            <span className="font-bold text-gray-700">{c.author}: </span>
-                            <span className="text-gray-600">{c.text}</span>
-                          </p>
-                        ))}
-                        <div className="flex gap-2">
-                          <label htmlFor={`mock-comment-${p.id}`} className="sr-only">댓글 입력</label>
-                          <input
-                            id={`mock-comment-${p.id}`}
-                            value={commentInputs[p.id] || ''}
-                            onChange={(e) => setCommentInputs({ ...commentInputs, [p.id]: e.target.value })}
-                            onKeyDown={(e) => e.key === 'Enter' && addMockComment(p.id)}
-                            placeholder="댓글 입력…"
-                            autoComplete="off"
-                            className="flex-1 min-h-[44px] px-3 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400"
-                          />
-                          <button
-                            onClick={() => addMockComment(p.id)}
-                            className="min-h-[44px] px-4 text-xs border border-gray-200 rounded-lg hover:bg-gray-100 text-gray-600 active:scale-95 touch-manipulation"
-                          >
-                            등록
-                          </button>
-                        </div>
+              {mockPosts.length > 0 && (
+                <div className="mt-5 space-y-3" aria-live="polite">
+                  <h4 className="text-sm font-bold text-slate-900">이번 체험에서 작성한 제안 ({mockPosts.length})</h4>
+                  {mockPosts.map((p) => (
+                    <article key={p.id} className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span className="font-semibold text-slate-700">{p.author}</span>
+                        <span>{p.location}</span>
+                        <span className="rounded bg-white px-2 py-1 text-emerald-700">{p.category}</span>
                       </div>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </section>
+                      <h4 className="text-sm font-bold text-slate-900">{p.title}</h4>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{p.content}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>}
       </div>
     </div>
   );
