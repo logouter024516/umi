@@ -22,7 +22,6 @@ export default function DemoExperience() {
   const [mTitle, setMTitle] = useState('');
   const [mContent, setMContent] = useState('');
   const [mCategory, setMCategory] = useState<Category | ''>('');
-  const [appliedStatus, setAppliedStatus] = useState(`${MOCK_IMAGES[0].probs[0].className} (${(MOCK_IMAGES[0].probs[0].probability * 100).toFixed(0)}%)`);
   const [activeStep, setActiveStep] = useState(1);
   const [draftGenerated, setDraftGenerated] = useState(false);
   const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
@@ -34,12 +33,6 @@ export default function DemoExperience() {
 
   useEffect(() => () => window.clearInterval(timerRef.current), []);
 
-  const goToStep = (step: number) => {
-    if (step > activeStep) return;
-    const targets = ['try-step-place', 'try-step-result', 'try-step-proposal'];
-    document.getElementById(targets[step - 1])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   const handleSelect = (id: string) => {
     if (id === selectedId && analyzedId === id) {
       setActiveStep(2);
@@ -49,7 +42,6 @@ export default function DemoExperience() {
     window.clearInterval(timerRef.current);
     setSelectedId(id);
     const nextScenario = MOCK_IMAGES.find((item) => item.id === id)!;
-    setAppliedStatus(`${nextScenario.probs[0].className} (${(nextScenario.probs[0].probability * 100).toFixed(0)}%)`);
     setDraftGenerated(false);
     setActiveStep(2);
     setAnalyzedId(null);
@@ -100,7 +92,6 @@ export default function DemoExperience() {
     setMCategory(draft.category);
     setMContent(draft.content);
     setDraftScenarioId(selected.id);
-    setAppliedStatus(`${selected.probs[0].className} (${(selected.probs[0].probability * 100).toFixed(0)}%)`);
     setDraftGenerated(true);
     setActiveStep(3);
     window.setTimeout(() => {
@@ -121,7 +112,6 @@ export default function DemoExperience() {
       title: mTitle.trim(),
       content: mContent.trim(),
       category: mCategory,
-      status: appliedStatus || '직접 제안',
       location: selected.location,
       likes: 0,
       comments: [],
@@ -344,18 +334,8 @@ export default function DemoExperience() {
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="mock-status" className="block text-xs text-gray-500 mb-1">예시 분류 결과 (자동)</label>
-                    <input
-                      id="mock-status"
-                      disabled
-                      value={appliedStatus || '장소 선택 후 자동 기입'}
-                      className="w-full min-h-[48px] px-3 text-sm border border-gray-100 rounded-lg bg-gray-100 text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="mock-location" className="block text-xs text-gray-500 mb-1">위치 (자동)</label>
+                <div>
+                  <label htmlFor="mock-location" className="block text-xs text-gray-500 mb-1">선택한 장소</label>
                     <input
                       id="mock-location"
                       disabled
