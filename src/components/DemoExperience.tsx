@@ -320,7 +320,7 @@ export default function DemoExperience() {
                   id="demo-chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="의견 입력… (체험, 저장 안 됨)"
+                  placeholder="의견 입력…"
                   autoComplete="off"
                   className="flex-1 min-h-[48px] px-3.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                 />
