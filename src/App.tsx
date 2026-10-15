@@ -19,8 +19,6 @@ const headers = () => ({
 });
 
 
-const GUIDE_KEY = 'heatlab-dashboard-guide-v2';
-
 const GUIDE_STEPS: { tab: TabType; eyebrow: string; title: string; description: string; icon: string; tip: string }[] = [
   { tab: 'home', eyebrow: 'WELCOME · 01 / 06', title: '열섬랩 대시보드에 오신 것을 환영해요', description: '이 대시보드에서 도시 열섬 문제를 살펴보고, 시민 제안을 작성하고, 다른 참여자의 아이디어와 현황을 확인할 수 있어요.', icon: '✦', tip: '상단 메뉴를 이용하면 언제든 다른 영역으로 이동할 수 있어요.' },
   { tab: 'board', eyebrow: 'EXPLORE · 02 / 06', title: '시민 제안부터 둘러보세요', description: '게시판에서 도시 열섬 완화에 관한 제안을 살펴보고, 관심 있는 주제에 공감하거나 댓글로 의견을 나눌 수 있어요.', icon: '⌕', tip: '실제 게시글은 서버 연결 상태에 따라 불러오거나 등록할 수 있어요.' },
@@ -34,10 +32,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<string[]>([]);
-  const [guideOpen, setGuideOpen] = useState(() => {
-    try { return window.localStorage.getItem(GUIDE_KEY) !== 'completed'; }
-    catch { return true; }
-  });
+  const [guideOpen, setGuideOpen] = useState(true);
   const [guideIndex, setGuideIndex] = useState(0);
   const guideStep = GUIDE_STEPS[guideIndex];
 
@@ -92,7 +87,6 @@ export default function App() {
   }, [guideOpen]);
 
   const finishGuide = () => {
-    try { window.localStorage.setItem(GUIDE_KEY, 'completed'); } catch { /* storage may be disabled */ }
     setGuideOpen(false);
   };
 
