@@ -33,6 +33,9 @@ export default function DemoExperience() {
   const [appliedStatus, setAppliedStatus] = useState(`${MOCK_IMAGES[0].probs[0].className} (${(MOCK_IMAGES[0].probs[0].probability * 100).toFixed(0)}%)`);
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [expandedMock, setExpandedMock] = useState<number | null>(MOCK_PROPOSALS[0].id);
+  const [activeStep, setActiveStep] = useState(1);
+  const [draftGenerated, setDraftGenerated] = useState(false);
+  const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mockFormRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number>(0);
@@ -46,14 +49,30 @@ export default function DemoExperience() {
 
   useEffect(() => () => window.clearInterval(timerRef.current), []);
 
+  const goToStep = (step: number) => {
+    const targets = ['try-step-place', 'try-step-result', 'try-step-discuss', 'try-step-proposal'];
+    setActiveStep(step);
+    document.getElementById(targets[step - 1])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleSelect = (id: string) => {
-    if (id === selectedId && analyzedId === id) return;
+    if (id === selectedId && analyzedId === id) {
+      goToStep(2);
+      return;
+    }
     window.clearInterval(timerRef.current);
     setSelectedId(id);
+    const nextScenario = MOCK_IMAGES.find((item) => item.id === id)!;
+    setAppliedStatus(`${nextScenario.probs[0].className} (${(nextScenario.probs[0].probability * 100).toFixed(0)}%)`);
+    setDraftGenerated(false);
+    setActiveStep(2);
     setAnalyzedId(null);
     setMessages(MOCK_CHAT[id]);
     setAnalyzing(true);
     setProgress(8);
+    window.setTimeout(() => {
+      document.getElementById('try-step-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
     timerRef.current = window.setInterval(() => {
       setProgress((p) => {
         if (p >= 96) {
@@ -75,12 +94,45 @@ export default function DemoExperience() {
       { id: Date.now(), author: '나', role: '나', text: t, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) },
     ]);
     setInput('');
+    setActiveStep(3);
   };
 
-  const applyToMockForm = () => {
-    if (!analyzed) return;
-    setAppliedStatus(`${analyzed.probs[0].className} (${(analyzed.probs[0].probability * 100).toFixed(0)}%)`);
-    mockFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const generateProposalDraft = () => {
+    const drafts: Record<string, { title: string; category: Category; content: string }> = {
+      rooftop: {
+        title: '본관 옥상 쿨루프·옥상 녹화 시범사업 제안',
+        category: '쿨루프',
+        content: `현황\n${selected.location}은 ${selected.desc} 조건을 가진 장소 예시입니다. 여름철 옥상 표면의 열 축적을 줄일 방안을 검토할 필요가 있습니다.\n\n제안 내용\n1. 시설 담당자가 방수층 상태와 구조 하중을 먼저 점검합니다.\n2. 적용 가능한 구역에 고반사 쿨루프 도장을 시범 적용합니다.\n3. 하중·배수 조건이 허용되는 곳은 이동식 화분이나 상자형 녹화를 함께 검토합니다.\n4. 적용 전후 같은 시간대에 표면 온도와 실내 온도, 유지관리 비용을 기록합니다.\n\n기대 효과\n옥상 열 축적 완화 가능성을 확인하고, 측정 결과와 관리 부담을 바탕으로 확대 여부를 판단할 수 있습니다.\n\n요청 사항\n안전·방수 점검을 포함한 소규모 시범사업과 전후 비교 측정을 검토해 주세요.\n\n※ 체험용 초안입니다. 실제 현장 조건과 측정 결과를 확인한 뒤 수정해 주세요.`,
+      },
+      asphalt: {
+        title: '통학로 차열 포장 및 그늘 개선 제안',
+        category: '바닥재',
+        content: `현황\n${selected.location}은 ${selected.desc} 조건을 가진 장소 예시입니다. 보행자가 햇볕과 포장면의 복사열에 오래 노출될 수 있습니다.\n\n제안 내용\n1. 보행 동선과 차량 안전을 확인한 뒤 그늘이 부족한 구간을 우선 선정합니다.\n2. 보행로 보수 시 밝은 색 차열성 포장재의 내구성·미끄럼 저항·유지관리 비용을 비교합니다.\n3. 시야와 보행 폭을 해치지 않는 위치에 가로수 또는 그늘 시설을 보완합니다.\n4. 개선 전후 이용자 의견과 같은 시간대의 표면 온도·그늘 면적을 기록합니다.\n\n기대 효과\n통학 시간대의 그늘을 늘리고, 실제 측정과 이용자 의견을 바탕으로 효과적인 구간부터 개선할 수 있습니다.\n\n요청 사항\n학교·시설 담당자와 함께 우선 구간을 조사하고 소규모 개선안과 관리 비용을 검토해 주세요.\n\n※ 체험용 초안입니다. 보행 안전과 현장 조건을 확인한 뒤 수정해 주세요.`,
+      },
+      park: {
+        title: '운동장 인접 녹지의 그늘 및 수목 관리 개선 제안',
+        category: '녹화',
+        content: `현황\n${selected.location}은 ${selected.desc} 조건을 가진 녹지 예시입니다. 기존 나무와 녹지를 건강하게 유지하면서 사람들이 이용하는 공간의 그늘을 보완하는 방안을 검토할 수 있습니다.\n\n제안 내용\n1. 기존 수목의 건강 상태와 여름철 그늘 분포를 조사합니다.\n2. 그늘이 부족한 보행·휴식 구간을 우선 선정해 적합한 수종과 식재 위치를 검토합니다.\n3. 빗물 활용과 토양 수분을 고려해 과도한 물 사용 없이 관수·멀칭 관리를 개선합니다.\n4. 식재 전후 그늘 면적, 생육 상태, 이용자 의견을 정기적으로 기록합니다.\n\n기대 효과\n기존 녹지의 효과를 유지하고, 그늘이 필요한 구간을 단계적으로 개선할 수 있습니다.\n\n요청 사항\n수목 관리 담당자와 함께 그늘 현황을 조사하고 관리 계획에 반영해 주세요.\n\n※ 체험용 초안입니다. 생태·배수·유지관리 조건을 확인한 뒤 수정해 주세요.`,
+      },
+      coolroof: {
+        title: '강당동 쿨루프 효과 점검 및 우수 사례 공유 제안',
+        category: '쿨루프',
+        content: `현황\n${selected.location}은 고반사 차열 도장이 적용된 장소 예시입니다. 효과가 지속되는지 확인하고 다른 건물에 적용할 수 있는 조건을 정리할 필요가 있습니다.\n\n제안 내용\n1. 도장 상태와 오염·박리 여부를 확인하고 유지관리 주기를 정합니다.\n2. 비교 가능한 일반 지붕 구역이 있다면 같은 시간대·기상 조건에서 표면 온도를 함께 기록합니다.\n3. 실내 온도와 냉방 사용량을 확보할 수 있는 범위에서 함께 비교합니다.\n4. 시공 비용, 점검 주기, 효과 측정 방법을 정리해 다른 건물의 참고 자료로 공유합니다.\n\n기대 효과\n쿨루프 효과와 관리 비용을 근거로 평가하고, 적용하기 적합한 건물을 구분할 수 있습니다.\n\n요청 사항\n시설 담당자와 함께 정기 점검 및 전후 비교 측정 결과를 공유할 수 있도록 검토해 주세요.\n\n※ 체험용 초안입니다. 실제 기록을 바탕으로 수치와 결론을 보완해 주세요.`,
+      },
+    };
+
+    const draft = drafts[selected.id] ?? drafts.rooftop;
+    setMTitle(draft.title);
+    setMCategory(draft.category);
+    setMContent(draft.content);
+    setDraftScenarioId(selected.id);
+    setAppliedStatus(`${selected.probs[0].className} (${(selected.probs[0].probability * 100).toFixed(0)}%)`);
+    setDraftGenerated(true);
+    setActiveStep(4);
+    window.setTimeout(() => {
+      mockFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('mock-author')?.focus({ preventScroll: true });
+    }, 40);
   };
 
   const submitMockProposal = (e: React.FormEvent) => {
@@ -107,6 +159,9 @@ export default function DemoExperience() {
     setMTitle('');
     setMContent('');
     setMCategory('');
+    setDraftGenerated(false);
+    setDraftScenarioId(null);
+    setActiveStep(4);
   };
 
   const likeMock = (id: number) => {
@@ -141,18 +196,25 @@ export default function DemoExperience() {
             <span className="rounded-lg bg-white/10 px-3 py-2">✓ 새로고침 시 초기화</span>
           </div>
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-4 sm:p-5">
+        <div className="grid gap-2 p-4 sm:grid-cols-4 sm:p-5" aria-label="체험 진행 단계">
           {[
-            { n: '01', title: '장소 선택', hint: '관심 있는 예시를 고르세요.' },
-            { n: '02', title: '결과 확인', hint: '분류와 제안 가이드를 봅니다.' },
-            { n: '03', title: '토론 참여', hint: '빠른 답변 또는 직접 의견을 남깁니다.' },
-            { n: '04', title: '제안 작성', hint: '내용을 작성하고 등록해 봅니다.' },
+            { n: '01', title: '장소 선택', hint: '카드 하나를 누르세요.' },
+            { n: '02', title: '결과 확인', hint: '장소별 예시 결과를 봅니다.' },
+            { n: '03', title: '의견 남기기', hint: '토론은 선택 사항이에요.' },
+            { n: '04', title: '제안서 작성', hint: '자동 작성 후 직접 수정하세요.' },
           ].map((step, i) => (
-            <div key={step.n} className={`rounded-2xl border p-3 sm:p-4 ${i === 0 ? 'border-orange-200 bg-orange-50/70' : 'border-slate-100 bg-slate-50'}`}>
-              <span className={`text-[11px] font-black tracking-widest ${i === 0 ? 'text-orange-600' : 'text-slate-400'}`}>{step.n}</span>
+            <button
+              type="button"
+              key={step.n}
+              onClick={() => goToStep(i + 1)}
+              aria-current={activeStep === i + 1 ? 'step' : undefined}
+              className={`rounded-2xl border p-3 text-left transition sm:p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 ${activeStep === i + 1 ? 'border-orange-300 bg-orange-50 shadow-sm' : 'border-slate-100 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}
+            >
+              <span className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-black tracking-widest ${activeStep === i + 1 ? 'bg-orange-500 text-white' : 'bg-white text-slate-400'}`}>{step.n}</span>
               <p className="mt-2 text-sm font-extrabold text-slate-900">{step.title}</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">{step.hint}</p>
-            </div>
+              <p className={`mt-2 text-[10px] font-bold ${activeStep === i + 1 ? 'text-orange-700' : 'text-slate-400'}`}>{activeStep === i + 1 ? '현재 단계' : '이동하기 →'}</p>
+            </button>
           ))}
         </div>
         <div className="mx-4 mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:mx-5 sm:mb-5">
@@ -163,7 +225,7 @@ export default function DemoExperience() {
 
       <div className="space-y-4">
             {/* STEP 1 */}
-            <section aria-label="예시 이미지 선택" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            <section id="try-step-place" aria-label="1단계: 장소 선택" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between mb-3">
                 <h3 className="text-sm font-extrabold text-gray-900">STEP 1 · 장소 예시 고르기</h3>
                 <span className="text-[11px] text-gray-400">모바일: 좌우 스와이프</span>
@@ -205,7 +267,7 @@ export default function DemoExperience() {
             </section>
 
             {/* STEP 2 */}
-            <section aria-label="예시 분류 결과" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            <section id="try-step-result" aria-label="2단계: 예시 분류 결과" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <h3 className="text-sm font-extrabold text-gray-900 mb-3">STEP 2 · 예시 분류 결과</h3>
               {analyzing && (
                 <div className="py-6" aria-live="polite">
@@ -252,10 +314,11 @@ export default function DemoExperience() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <button
-                        onClick={applyToMockForm}
+                        type="button"
+                        onClick={() => goToStep(3)}
                         className="flex-1 min-h-[48px] px-5 text-sm font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:scale-[0.98] touch-manipulation shadow-sm"
                       >
-                        이 결과로 예시 제안서 쓰기 ↓
+                        다음 단계: 의견 나누기 ↓
                       </button>
 
                     </div>
@@ -265,7 +328,7 @@ export default function DemoExperience() {
             </section>
 
             {/* STEP 3 */}
-            <section aria-label="시민 연구원 채팅" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+            <section id="try-step-discuss" aria-label="3단계: 의견 나누기" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <div className="flex items-baseline justify-between mb-3">
                 <h3 className="text-sm font-extrabold text-gray-900">STEP 3 · 현장 토론 채팅</h3>
                 <span className="text-[11px] text-gray-400">{selected.title} · {messages.length}건</span>
@@ -332,16 +395,40 @@ export default function DemoExperience() {
                   전송
                 </button>
               </form>
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={() => goToStep(4)} className="min-h-[44px] rounded-xl bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800">
+                  다음 단계: 제안서 작성 ↓
+                </button>
+              </div>
             </section>
 
             {/* STEP 4: 예시 제안서 — 실제 게시판(Supabase)과 완전 분리, 로컬 전용 */}
-            <section aria-label="예시 제안서 작성" className="border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
-              <div className="flex items-baseline justify-between mb-1">
+            <section id="try-step-proposal" aria-label="4단계: 예시 제안서 작성" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                 <h3 className="text-sm font-extrabold text-gray-900">STEP 4 · 예시 제안서 쓰기</h3>
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">로컬 전용 · 저장 안 됨</span>
+                <span className="text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-600">작성 내용은 이 페이지에서만 유지</span>
               </div>
-              <p className="text-[11px] text-gray-400 mb-3">현재 브라우저에서 장소 선택부터 제안·공감·댓글까지 체험할 수 있습니다. 작성 내용은 이 페이지 안에서만 유지됩니다.</p>
-              <div ref={mockFormRef} className="scroll-mt-4" />
+              <p className="text-sm leading-6 text-gray-600 mb-3">직접 작성해도 되고, 아래 버튼으로 <strong>{selected.title}</strong>에 맞는 초안을 자동으로 채운 다음 수정해도 됩니다.</p>
+              <ol className="mb-4 grid gap-2 text-xs text-gray-600 sm:grid-cols-4" aria-label="제안서 작성 순서">
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">1. 초안 자동 작성</strong>선택 장소에 맞춰 채우기</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">2. 작성자 입력</strong>이름은 직접 입력</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">3. 검토·수정</strong>내용은 자유롭게 편집</li>
+                <li className="rounded-lg bg-slate-50 p-2"><strong className="block text-slate-800">4. 제안 등록</strong>아래 버튼으로 완료</li>
+              </ol>
+              <div ref={mockFormRef} className="scroll-mt-24" />
+              <div className="mb-3 rounded-2xl border border-orange-200 bg-orange-50/70 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">제안서 초안 자동 작성</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">선택 장소에 맞춰 제목·분야·내용을 채워요. 작성 후 자유롭게 편집할 수 있습니다.</p>
+                  </div>
+                  <button type="button" onClick={generateProposalDraft} className="min-h-[48px] shrink-0 rounded-xl bg-orange-500 px-4 text-sm font-bold text-white shadow-sm hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2">
+                    {draftGenerated ? '초안 다시 생성하기' : '선택 장소에 맞춰 자동 작성'}
+                  </button>
+                </div>
+                {draftGenerated && <p role="status" className="mt-3 text-xs font-semibold text-emerald-700">초안이 작성됐어요. 제목과 내용을 확인한 뒤 필요한 부분을 수정하세요.</p>}
+                {draftScenarioId && draftScenarioId !== selected.id && (mTitle.trim() || mContent.trim()) && <p role="status" className="mt-3 text-xs leading-5 font-semibold text-amber-800">선택 장소가 바뀌었어요. 입력된 초안은 이전 장소 기준이므로, 새 장소에 맞추려면 자동 작성 버튼을 다시 눌러 주세요.</p>}
+              </div>
               <form onSubmit={submitMockProposal} className="space-y-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -412,12 +499,15 @@ export default function DemoExperience() {
                     className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-orange-400 resize-none"
                   />
                 </div>
-                <div className="flex justify-end">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <button type="button" onClick={() => { setMAuthor(''); setMTitle(''); setMContent(''); setMCategory(''); setDraftGenerated(false); setDraftScenarioId(null); }} className="min-h-[48px] rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+                    입력 지우기
+                  </button>
                   <button
                     type="submit"
                     className="min-h-[48px] px-5 text-sm font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:scale-[0.98] touch-manipulation"
                   >
-                    예시 제안 등록
+                    제안 등록
                   </button>
                 </div>
               </form>
