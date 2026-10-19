@@ -132,6 +132,7 @@ export default function DemoExperience() {
     setCustomSelected(true);
     setCustomAnalysisError('');
     setCustomAnalyzing(true);
+    window.clearInterval(timerRef.current);
     setAnalyzing(false);
     setAnalyzedId(null);
     setDraftGenerated(false);
