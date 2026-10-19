@@ -1,33 +1,29 @@
+import { SCENARIO_PHOTOS } from '../data/scenarioPhotos';
+
 interface ScenarioIllustrationProps {
   id: string;
   title?: string;
   className?: string;
 }
 
-const SCENARIOS: Record<string, { background: string; emoji: string }> = {
-  rooftop: { background: 'from-orange-100 via-amber-50 to-slate-200', emoji: '🏢' },
-  asphalt: { background: 'from-slate-200 via-slate-100 to-orange-100', emoji: '🛣️' },
-  park: { background: 'from-emerald-100 via-green-50 to-sky-100', emoji: '🌳' },
-  coolroof: { background: 'from-sky-100 via-slate-100 to-orange-100', emoji: '🏙️' },
-};
-
 export default function ScenarioIllustration({ id, title, className = '' }: ScenarioIllustrationProps) {
-  const scenario = SCENARIOS[id] ?? SCENARIOS.coolroof;
+  const photo = SCENARIO_PHOTOS[id] ?? SCENARIO_PHOTOS.coolroof;
 
   return (
     <div
       role={title ? 'img' : undefined}
       aria-label={title}
       aria-hidden={title ? undefined : true}
-      className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${scenario.background} ${className}`}
+      className={`relative overflow-hidden bg-slate-100 ${className}`}
     >
-      <div className="absolute inset-0 opacity-40" aria-hidden="true">
-        <div className="absolute bottom-0 left-0 h-1/3 w-full bg-white/50" />
-        <div className="absolute bottom-[18%] left-[12%] h-[38%] w-[14%] rounded-t-lg bg-slate-500/15" />
-        <div className="absolute bottom-[14%] right-[18%] h-[55%] w-[18%] rounded-t-lg bg-slate-500/15" />
-        <div className="absolute bottom-[14%] right-[42%] h-[28%] w-[12%] rounded-t-lg bg-slate-500/15" />
-      </div>
-      <span className="relative z-10 text-5xl drop-shadow-sm" aria-hidden="true">{scenario.emoji}</span>
+      <img
+        src={photo.imageUrl}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent" aria-hidden="true" />
     </div>
   );
 }
