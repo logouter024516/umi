@@ -3,6 +3,7 @@ import { MOCK_IMAGES } from '../data/mockDemo';
 import type { MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
 import ScenarioIllustration from './ScenarioIllustration';
+import { SCENARIO_PHOTOS } from '../data/scenarioPhotos';
 import type { Category } from '../types';
 
 export default function DemoExperience() {
@@ -163,37 +164,51 @@ export default function DemoExperience() {
               <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 md:grid md:grid-cols-4 md:overflow-visible">
                 {MOCK_IMAGES.map((m) => {
                   const active = selectedId === m.id;
+                  const photo = SCENARIO_PHOTOS[m.id] ?? SCENARIO_PHOTOS.coolroof;
                   return (
-                    <button
+                    <article
                       key={m.id}
-                      onClick={() => handleSelect(m.id)}
-                      aria-pressed={active}
-                      className={`shrink-0 w-60 snap-start md:w-auto text-left rounded-xl overflow-hidden touch-manipulation active:scale-[0.98] transition-all min-h-[44px] border-2 ${
+                      className={`shrink-0 w-60 snap-start md:w-auto overflow-hidden rounded-xl border-2 transition-all ${
                         active ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-gray-100 hover:border-gray-300 hover:shadow'
                       }`}
                     >
-                      <div className={`relative flex h-36 items-center justify-center overflow-hidden ${m.id === 'rooftop' ? 'bg-gradient-to-br from-orange-100 via-amber-50 to-slate-200' : m.id === 'asphalt' ? 'bg-gradient-to-br from-slate-200 via-slate-100 to-orange-100' : m.id === 'park' ? 'bg-gradient-to-br from-emerald-100 via-green-50 to-sky-100' : 'bg-gradient-to-br from-sky-100 via-slate-100 to-orange-100'}`}>
-                        <div className="absolute inset-0 opacity-40" aria-hidden>
-                          <div className="absolute bottom-0 left-0 h-12 w-full bg-white/50" />
-                          <div className="absolute bottom-5 left-5 h-14 w-10 rounded-t-lg bg-slate-500/15" />
-                          <div className="absolute bottom-4 right-7 h-20 w-12 rounded-t-lg bg-slate-500/15" />
-                          <div className="absolute bottom-4 right-20 h-10 w-8 rounded-t-lg bg-slate-500/15" />
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(m.id)}
+                        aria-pressed={active}
+                        className="block min-h-[44px] w-full text-left touch-manipulation transition-transform active:scale-[0.98]"
+                      >
+                        <div className="relative h-36 overflow-hidden bg-slate-100">
+                          <img
+                            src={photo.imageUrl}
+                            alt={photo.alt}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                          />
+                          <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-1 text-[11px] font-bold text-white shadow">
+                            실제 사진 · 참고용
+                          </span>
+                          {active && (
+                            <span className="absolute right-2 top-2 rounded-full bg-gray-900 px-2 py-1 text-[11px] font-bold text-white">
+                              선택됨 ✓
+                            </span>
+                          )}
                         </div>
-                        <span className="relative z-10 text-5xl drop-shadow-sm" aria-hidden>{m.id === 'rooftop' ? '🏢' : m.id === 'asphalt' ? '🛣️' : m.id === 'park' ? '🌳' : '🏙️'}</span>
-                        <span className="absolute top-2 left-2 text-[11px] font-bold px-2 py-1 rounded-full bg-slate-950/80 text-white shadow">예시 시나리오</span>
-                        {active && (
-                          <span className="absolute top-2 right-2 text-[11px] font-bold px-2 py-1 rounded-full bg-gray-900 text-white">선택됨 ✓</span>
-                        )}
+                        <div className="p-2.5 pb-1">
+                          <p className="text-[13px] font-bold leading-tight text-gray-900">{m.title}</p>
+                          <p className="mt-0.5 text-[11px] text-gray-500">{m.location}</p>
+                          <p className="mt-0.5 truncate text-[11px] text-gray-400">{m.desc}</p>
+                        </div>
+                      </button>
+                      <div className="px-2.5 pb-2 text-[10px] leading-4 text-slate-500">
+                        사진: <a href={photo.sourceUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-slate-800">{photo.photographer}</a> · Unsplash
                       </div>
-                      <div className="p-2.5">
-                        <p className="text-[13px] font-bold text-gray-900 leading-tight">{m.title}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">{m.location}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5 truncate">{m.desc}</p>
-                      </div>
-                    </button>
+                    </article>
                   );
                 })}
               </div>
+              <p className="mt-2 text-xs leading-5 text-slate-500">사진은 출처가 표시된 실제 참고 사진이며, 선택한 장소의 실제 모습은 아닙니다.</p>
             </section>
 
             {/* STEP 2 */}
