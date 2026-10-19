@@ -1,5 +1,6 @@
 import { MOCK_IMAGES } from '../data/mockDemo';
 import ScenarioIllustration from './ScenarioIllustration';
+import { SCENARIO_PHOTOS } from '../data/scenarioPhotos';
 
 interface LandingPageProps {
   onStartDemo: () => void;
@@ -66,7 +67,7 @@ export default function LandingPage({ onStartDemo, onOpenBoard }: LandingPagePro
                   <p className="mt-1 text-sm font-bold text-emerald-200">쿨루프 · 녹화</p>
                 </div>
               </div>
-              <div className="px-2 pb-2 pt-1 text-[10px] leading-4 text-slate-400">예시 화면 · 표시된 수치는 실제 센서 측정값이 아닌 시연용 데이터입니다.</div>
+              <div className="px-2 pb-2 pt-1 text-[10px] leading-4 text-slate-400">사진: <a href={SCENARIO_PHOTOS[featured.id]?.sourceUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-slate-200">{SCENARIO_PHOTOS[featured.id]?.photographer}</a> · Unsplash 참고 사진(실제 현장 사진 아님) · 표시된 수치는 시연용 데이터입니다.</div>
             </div>
           </div>
         </div>
