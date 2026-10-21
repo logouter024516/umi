@@ -51,9 +51,21 @@ function loadTeachableMachineModel(): Promise<TMModel> {
   return sharedModelPromise;
 }
 
+type HeatClass = 'hot' | 'cold' | 'unknown';
+
+function classifyHeatLabel(className: string): HeatClass {
+  const normalized = className.trim().toLowerCase();
+
+  // The deployed Teachable Machine model uses hot/cold-style class labels.
+  // Keep the model's original class name for the probability list, but map
+  // known label variants to a clear UI state.
+  if (/\\bhot\\b|heat|warm|더움|고온|열섬|urban/.test(normalized)) return 'hot';
+  if (/\\bcold\\b|cool|normal|추움|저온|냉/.test(normalized)) return 'cold';
+  return 'unknown';
+}
+
 function isHeatLabel(className: string): boolean {
-  const normalized = className.toLowerCase();
-  return normalized.includes('heat') || className.includes('열섬') || normalized.includes('urban');
+  return classifyHeatLabel(className) === 'hot';
 }
 
 export default function DemoExperience() {
@@ -91,12 +103,15 @@ export default function DemoExperience() {
         desc: uploadTop ? `Teachable Machine 예측: ${uploadTop.className}` : 'Teachable Machine 모델 분석',
         temp: '측정 안 함',
         tempValue: 0,
-        isHeat: uploadTop ? isHeatLabel(uploadTop.className) : false,
+        isHeat: uploadTop ? classifyHeatLabel(uploadTop.className) === 'hot' : false,
+        heatClass: uploadTop ? classifyHeatLabel(uploadTop.className) : 'unknown',
         probs: uploadPredictions,
         suggestion: uploadTop
-          ? (isHeatLabel(uploadTop.className)
-            ? '모델이 열섬 관련 클래스로 분류했습니다. 실제 현장 조건과 표면 온도도 별도로 확인하세요.'
-            : '모델은 열섬 관련이 아닌 클래스로 분류했습니다. 이 결과만으로 현장이 안전하다고 확정할 수는 없습니다.')
+          ? (classifyHeatLabel(uploadTop.className) === 'hot'
+            ? '모델이 HOT(더움) 클래스로 분류했습니다. 실제 현장 조건과 표면 온도도 별도로 확인하세요.'
+            : classifyHeatLabel(uploadTop.className) === 'cold'
+              ? '모델이 COLD(추움) 클래스로 분류했습니다. 사진 분류 결과만으로 실제 온도나 안전 여부를 확정할 수는 없습니다.'
+              : '모델의 원본 클래스명을 확인해 주세요. 이 분류 결과는 실제 온도 측정값이 아닙니다.')
           : '사진을 모델로 분석하고 있습니다.',
       }
     : baseSelected;
@@ -430,8 +445,20 @@ ${selected.probs.map((prediction) => `- ${prediction.className}: ${(prediction.p
                   <div className="flex-1 mt-3 md:mt-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · {customSelected ? 'Teachable Machine 분석' : '예시 시나리오'}</p>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${analyzed.isHeat ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
-                        {analyzed.isHeat ? '🔥 열섬 우려' : '🌿 정상'}
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${customSelected
+                        ? selected.heatClass === 'hot'
+                          ? 'bg-red-50 text-red-600 border-red-200'
+                          : selected.heatClass === 'cold'
+                            ? 'bg-sky-50 text-sky-700 border-sky-200'
+                            : 'bg-slate-50 text-slate-700 border-slate-200'
+                        : analyzed.isHeat ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                        {customSelected
+                          ? selected.heatClass === 'hot'
+                            ? '🔥 HOT · 더움'
+                            : selected.heatClass === 'cold'
+                              ? '❄️ COLD · 추움'
+                              : `모델 분류: ${uploadTop?.className ?? '확인 필요'}`
+                          : analyzed.isHeat ? '🔥 열섬 우려' : '🌿 정상'}
                       </span>
                     </div>
                     <p className="text-[11px] text-gray-400 mt-0.5">{analyzed.location} · {analyzed.desc} · {customSelected ? '모델 예측 확률이며 실제 온도를 측정하지 않습니다' : '표시 수치는 가상 예시'}</p>
