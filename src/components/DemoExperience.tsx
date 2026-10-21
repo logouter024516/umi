@@ -2,8 +2,59 @@ import { useState, useRef, useEffect } from 'react';
 import { MOCK_IMAGES } from '../data/mockDemo';
 import type { MockProposal } from '../data/mockDemo';
 import { CATEGORIES } from '../types';
+import type { Prediction } from '../types';
 import ScenarioIllustration from './ScenarioIllustration';
+import { SCENARIO_PHOTOS } from '../data/scenarioPhotos';
 import type { Category } from '../types';
+
+const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/MHE9y_TuM/';
+const TFJS_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js';
+const TM_IMAGE_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js';
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+interface UploadedPhoto {
+  fileName: string;
+  src: string;
+  predictions: Prediction[] | null;
+}
+
+let sharedModelPromise: Promise<TMModel> | null = null;
+
+function loadScript(src: string, isReady: () => boolean): Promise<void> {
+  if (isReady()) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => isReady()
+      ? resolve()
+      : reject(new Error('라이브러리가 준비되지 않았습니다.'));
+    script.onerror = () => reject(new Error('AI 라이브러리를 불러오지 못했습니다.'));
+    document.head.appendChild(script);
+  });
+}
+
+function loadTeachableMachineModel(): Promise<TMModel> {
+  if (!sharedModelPromise) {
+    sharedModelPromise = (async () => {
+      await loadScript(TFJS_SCRIPT_URL, () => Boolean((window as Window & { tf?: unknown }).tf));
+      await loadScript(TM_IMAGE_SCRIPT_URL, () => Boolean(window.tmImage));
+      if (!window.tmImage) throw new Error('Teachable Machine 라이브러리를 사용할 수 없습니다.');
+      return window.tmImage.load(`${MODEL_URL}model.json`, `${MODEL_URL}metadata.json`);
+    })().catch((error) => {
+      sharedModelPromise = null;
+      throw error;
+    });
+  }
+
+  return sharedModelPromise;
+}
+
+function isHeatLabel(className: string): boolean {
+  const normalized = className.toLowerCase();
+  return normalized.includes('heat') || className.includes('열섬') || normalized.includes('urban');
+}
 
 export default function DemoExperience() {
   const [selectedId, setSelectedId] = useState(MOCK_IMAGES[0].id);
@@ -19,15 +70,109 @@ export default function DemoExperience() {
   const [draftGenerated, setDraftGenerated] = useState(false);
   const [draftScenarioId, setDraftScenarioId] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [uploadedPhoto, setUploadedPhoto] = useState<UploadedPhoto | null>(null);
+  const [customSelected, setCustomSelected] = useState(false);
+  const [customAnalyzing, setCustomAnalyzing] = useState(false);
+  const [customAnalysisError, setCustomAnalysisError] = useState('');
   const mockFormRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number>(0);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const uploadedObjectUrlRef = useRef<string | null>(null);
 
-  const selected = MOCK_IMAGES.find((m) => m.id === selectedId)!;
-  const analyzed = MOCK_IMAGES.find((m) => m.id === analyzedId);
+  const baseSelected = MOCK_IMAGES.find((m) => m.id === selectedId)!;
+  const uploadPredictions = uploadedPhoto?.predictions ?? [];
+  const uploadTop = uploadPredictions[0];
+  const selected = customSelected && uploadedPhoto
+    ? {
+        ...baseSelected,
+        id: 'uploaded',
+        title: '업로드한 사진',
+        location: '직접 업로드한 사진',
+        desc: uploadTop ? `Teachable Machine 예측: ${uploadTop.className}` : 'Teachable Machine 모델 분석',
+        temp: '측정 안 함',
+        tempValue: 0,
+        isHeat: uploadTop ? isHeatLabel(uploadTop.className) : false,
+        probs: uploadPredictions,
+        suggestion: uploadTop
+          ? (isHeatLabel(uploadTop.className)
+            ? '모델이 열섬 관련 클래스로 분류했습니다. 실제 현장 조건과 표면 온도도 별도로 확인하세요.'
+            : '모델은 열섬 관련이 아닌 클래스로 분류했습니다. 이 결과만으로 현장이 안전하다고 확정할 수는 없습니다.')
+          : '사진을 모델로 분석하고 있습니다.',
+      }
+    : baseSelected;
+  const analyzed = customSelected
+    ? (uploadedPhoto?.predictions?.length ? selected : undefined)
+    : MOCK_IMAGES.find((m) => m.id === analyzedId);
 
   useEffect(() => () => window.clearInterval(timerRef.current), []);
 
+  useEffect(() => () => {
+    if (uploadedObjectUrlRef.current) URL.revokeObjectURL(uploadedObjectUrlRef.current);
+  }, []);
+
+  const handleUploadFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setCustomAnalysisError('이미지 파일을 선택해 주세요.');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setCustomAnalysisError('사진 크기는 10MB 이하로 선택해 주세요.');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    if (uploadedObjectUrlRef.current) URL.revokeObjectURL(uploadedObjectUrlRef.current);
+    uploadedObjectUrlRef.current = objectUrl;
+
+    setUploadedPhoto({ fileName: file.name, src: objectUrl, predictions: null });
+    setCustomSelected(true);
+    setCustomAnalysisError('');
+    setCustomAnalyzing(true);
+    window.clearInterval(timerRef.current);
+    setAnalyzing(false);
+    setAnalyzedId(null);
+    setDraftGenerated(false);
+    setDraftScenarioId(null);
+    setActiveStep(2);
+    window.setTimeout(() => {
+      document.getElementById('try-step-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+
+    void (async () => {
+      try {
+        const model = await loadTeachableMachineModel();
+        if (uploadedObjectUrlRef.current !== objectUrl) return;
+
+        const image = new Image();
+        image.decoding = 'async';
+        image.src = objectUrl;
+        await image.decode();
+
+        const predictions = (await model.predict(image))
+          .sort((a, b) => b.probability - a.probability)
+          .map((prediction) => ({ className: prediction.className, probability: prediction.probability }));
+
+        if (uploadedObjectUrlRef.current !== objectUrl) return;
+        setUploadedPhoto((current) => current?.src === objectUrl ? { ...current, predictions } : current);
+      } catch (error) {
+        console.error('Teachable Machine 이미지 분석 실패:', error);
+        if (uploadedObjectUrlRef.current === objectUrl) {
+          setCustomAnalysisError('모델을 불러오거나 사진을 분석하지 못했어요. 네트워크와 이미지 파일을 확인한 뒤 다시 시도해 주세요.');
+        }
+      } finally {
+        if (uploadedObjectUrlRef.current === objectUrl) setCustomAnalyzing(false);
+      }
+    })();
+  };
+
   const handleSelect = (id: string) => {
+    setCustomSelected(false);
+    setCustomAnalyzing(false);
+    setCustomAnalysisError('');
     if (id === selectedId && analyzedId === id) {
       setActiveStep(2);
       window.setTimeout(() => document.getElementById('try-step-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
@@ -77,6 +222,22 @@ export default function DemoExperience() {
         title: '강당동 쿨루프 효과 점검 및 우수 사례 공유 제안',
         category: '쿨루프',
         content: `현황\n${selected.location}은 고반사 차열 도장이 적용된 장소 예시입니다. 효과가 지속되는지 확인하고 다른 건물에 적용할 수 있는 조건을 정리할 필요가 있습니다.\n\n제안 내용\n1. 도장 상태와 오염·박리 여부를 확인하고 유지관리 주기를 정합니다.\n2. 비교 가능한 일반 지붕 구역이 있다면 같은 시간대·기상 조건에서 표면 온도를 함께 기록합니다.\n3. 실내 온도와 냉방 사용량을 확보할 수 있는 범위에서 함께 비교합니다.\n4. 시공 비용, 점검 주기, 효과 측정 방법을 정리해 다른 건물의 참고 자료로 공유합니다.\n\n기대 효과\n쿨루프 효과와 관리 비용을 근거로 평가하고, 적용하기 적합한 건물을 구분할 수 있습니다.\n\n요청 사항\n시설 담당자와 함께 정기 점검 및 전후 비교 측정 결과를 공유할 수 있도록 검토해 주세요.\n\n※ 체험용 초안입니다. 실제 기록을 바탕으로 수치와 결론을 보완해 주세요.`,
+      },
+      uploaded: {
+        title: '업로드 사진 기반 열섬 완화 개선 제안',
+        category: '기타',
+        content: `현황
+직접 업로드한 사진을 서비스의 Teachable Machine 이미지 분류 모델로 분석했습니다.
+
+모델 분류 결과
+${selected.probs.map((prediction) => `- ${prediction.className}: ${(prediction.probability * 100).toFixed(1)}%`).join('\n')}
+
+검토 제안
+1. 사진에 나타난 장소의 실제 위치와 이용 환경을 확인합니다.
+2. 열섬 관련 개선 필요성이 있다면 현장 표면 온도, 그늘, 포장 재질 등을 별도로 측정합니다.
+3. 측정 결과를 바탕으로 녹화·쿨루프·차열 포장 등의 적용 가능성을 검토합니다.
+
+※ 모델은 이미지 분류 결과만 제공합니다. 실제 온도나 열섬 강도를 직접 측정하는 진단은 아닙니다.`,
       },
     };
 
@@ -162,68 +323,118 @@ export default function DemoExperience() {
               </div>
               <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 md:grid md:grid-cols-4 md:overflow-visible">
                 {MOCK_IMAGES.map((m) => {
-                  const active = selectedId === m.id;
+                  const active = !customSelected && selectedId === m.id;
+                  const photo = SCENARIO_PHOTOS[m.id] ?? SCENARIO_PHOTOS.coolroof;
                   return (
-                    <button
+                    <article
                       key={m.id}
-                      onClick={() => handleSelect(m.id)}
-                      aria-pressed={active}
-                      className={`shrink-0 w-60 snap-start md:w-auto text-left rounded-xl overflow-hidden touch-manipulation active:scale-[0.98] transition-all min-h-[44px] border-2 ${
+                      className={`shrink-0 w-60 snap-start md:w-auto overflow-hidden rounded-xl border-2 transition-all ${
                         active ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-gray-100 hover:border-gray-300 hover:shadow'
                       }`}
                     >
-                      <div className={`relative flex h-36 items-center justify-center overflow-hidden ${m.id === 'rooftop' ? 'bg-gradient-to-br from-orange-100 via-amber-50 to-slate-200' : m.id === 'asphalt' ? 'bg-gradient-to-br from-slate-200 via-slate-100 to-orange-100' : m.id === 'park' ? 'bg-gradient-to-br from-emerald-100 via-green-50 to-sky-100' : 'bg-gradient-to-br from-sky-100 via-slate-100 to-orange-100'}`}>
-                        <div className="absolute inset-0 opacity-40" aria-hidden>
-                          <div className="absolute bottom-0 left-0 h-12 w-full bg-white/50" />
-                          <div className="absolute bottom-5 left-5 h-14 w-10 rounded-t-lg bg-slate-500/15" />
-                          <div className="absolute bottom-4 right-7 h-20 w-12 rounded-t-lg bg-slate-500/15" />
-                          <div className="absolute bottom-4 right-20 h-10 w-8 rounded-t-lg bg-slate-500/15" />
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(m.id)}
+                        aria-pressed={active}
+                        className="block min-h-[44px] w-full text-left touch-manipulation transition-transform active:scale-[0.98]"
+                      >
+                        <div className="relative h-36 overflow-hidden bg-slate-100">
+                          <img src={photo.imageUrl} alt={photo.alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                          <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-1 text-[11px] font-bold text-white shadow">실제 사진 · 참고용</span>
+                          {active && <span className="absolute right-2 top-2 rounded-full bg-gray-900 px-2 py-1 text-[11px] font-bold text-white">선택됨 ✓</span>}
                         </div>
-                        <span className="relative z-10 text-5xl drop-shadow-sm" aria-hidden>{m.id === 'rooftop' ? '🏢' : m.id === 'asphalt' ? '🛣️' : m.id === 'park' ? '🌳' : '🏙️'}</span>
-                        <span className="absolute top-2 left-2 text-[11px] font-bold px-2 py-1 rounded-full bg-slate-950/80 text-white shadow">예시 시나리오</span>
-                        {active && (
-                          <span className="absolute top-2 right-2 text-[11px] font-bold px-2 py-1 rounded-full bg-gray-900 text-white">선택됨 ✓</span>
-                        )}
+                        <div className="p-2.5 pb-1">
+                          <p className="text-[13px] font-bold leading-tight text-gray-900">{m.title}</p>
+                          <p className="mt-0.5 text-[11px] text-gray-500">{m.location}</p>
+                          <p className="mt-0.5 truncate text-[11px] text-gray-400">{m.desc}</p>
+                        </div>
+                      </button>
+                      <div className="px-2.5 pb-2 text-[10px] leading-4 text-slate-500">
+                        사진: <a href={photo.sourceUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-slate-800">{photo.photographer}</a> · Unsplash
                       </div>
-                      <div className="p-2.5">
-                        <p className="text-[13px] font-bold text-gray-900 leading-tight">{m.title}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">{m.location}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5 truncate">{m.desc}</p>
-                      </div>
-                    </button>
+                    </article>
                   );
                 })}
+                <article
+                  className={`shrink-0 w-60 snap-start md:w-auto overflow-hidden rounded-xl border-2 transition-all ${
+                    customSelected ? 'border-orange-500 shadow-lg shadow-orange-100' : 'border-dashed border-slate-300 hover:border-orange-300 hover:shadow'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setCustomAnalysisError(''); uploadInputRef.current?.click(); }}
+                    aria-pressed={customSelected}
+                    className="block min-h-[44px] w-full text-left touch-manipulation transition-transform active:scale-[0.98]"
+                    aria-label={uploadedPhoto ? '다른 사진 업로드하기' : '직접 사진 업로드하기'}
+                  >
+                    <div className="relative h-36 overflow-hidden bg-slate-50">
+                      {uploadedPhoto ? (
+                        <img src={uploadedPhoto.src} alt="직접 업로드한 사진 미리보기" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-500">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-3xl font-light text-orange-600" aria-hidden>＋</span>
+                          <span className="text-sm font-bold">사진 업로드</span>
+                          <span className="text-[10px]">JPG · PNG · WEBP</span>
+                        </div>
+                      )}
+                      {uploadedPhoto && <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-1 text-[11px] font-bold text-white shadow">내 사진 · 모델 분석</span>}
+                      {customSelected && <span className="absolute right-2 top-2 rounded-full bg-gray-900 px-2 py-1 text-[11px] font-bold text-white">선택됨 ✓</span>}
+                    </div>
+                    <div className="p-2.5 pb-1">
+                      <p className="truncate text-[13px] font-bold leading-tight text-gray-900">{uploadedPhoto ? uploadedPhoto.fileName : '내 사진으로 분석'}</p>
+                      <p className="mt-0.5 text-[11px] text-gray-500">사진 선택 시 자동 분석</p>
+                      <p className="mt-0.5 truncate text-[11px] text-gray-400">{uploadedPhoto ? '다른 사진을 올리려면 누르세요' : '최대 10MB · 이미지 파일'}</p>
+                    </div>
+                  </button>
+                  <div className="px-2.5 pb-2 text-[10px] leading-4 text-slate-500">브라우저에서 모델 실행</div>
+                  <input
+                    ref={uploadInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadFileChange}
+                    className="hidden"
+                    aria-label="분석할 사진 선택"
+                  />
+                </article>
               </div>
+              <p className="mt-2 text-xs leading-5 text-slate-500">직접 업로드한 이미지는 서버에 업로드하지 않고, 이 브라우저에서 서비스의 Teachable Machine 모델로 분류합니다. 모델 확률은 실제 온도 측정값이 아닙니다.</p>
+              {customAnalysisError && <p role="alert" className="mt-2 text-xs leading-5 text-red-700">{customAnalysisError}</p>}
             </section>
 
             {/* STEP 2 */}
             {activeStep >= 2 && <section id="try-step-result" aria-label="2단계: 예시 분류 결과" className="scroll-mt-24 border border-gray-200 rounded-xl bg-white p-4 shadow-sm">
               <h3 className="text-sm font-extrabold text-gray-900 mb-3">STEP 2 · 예시 분류 결과</h3>
-              {analyzing && (
+              {(analyzing || (customSelected && customAnalyzing)) && (
                 <div className="py-6" aria-live="polite">
                   <div className="flex items-center gap-3 mb-2">
-                    <ScenarioIllustration id={selected.id} className="h-14 w-14 shrink-0 rounded-lg border border-gray-200" />
+                    <ScenarioIllustration id={customSelected ? 'uploaded' : selected.id} imageSrc={customSelected ? uploadedPhoto?.src : undefined} className="h-14 w-14 shrink-0 rounded-lg border border-gray-200" />
                     <div className="flex-1">
-                      <p className="text-[13px] font-bold text-gray-800">{selected.title} 분석 중… {progress}%</p>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-1.5">
+                      <p className="text-[13px] font-bold text-gray-800">{customSelected ? 'Teachable Machine 모델로 사진 분석 중…' : `${selected.title} 분석 중… ${progress}%`}</p>
+                      {!customSelected && <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-1.5">
                         <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-150" style={{ width: `${progress}%` }} />
-                      </div>
+                      </div>}
                     </div>
                   </div>
-                  <p className="text-[11px] text-gray-400">열 분포 · 표면 재질 · 녹피율을 스캔하고 있습니다 (예시로 보여주는 진행 효과)</p>
+                  <p className="text-[11px] text-gray-400">{customSelected ? '실 서비스에서 사용하는 이미지 분류 모델을 브라우저에서 실행하고 있어요.' : '예시 시나리오의 진행 효과이며, 실제 AI 추론이 아닙니다.'}</p>
                 </div>
               )}
-              {!analyzing && analyzed && (
+              {customSelected && customAnalysisError && !customAnalyzing && !analyzed && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                  {customAnalysisError}
+                  <button type="button" onClick={() => uploadInputRef.current?.click()} className="ml-2 font-bold underline underline-offset-2">다시 시도</button>
+                </div>
+              )}
+              {!analyzing && !(customSelected && customAnalyzing) && analyzed && (
                 <div className="md:flex gap-4">
-                  <ScenarioIllustration id={analyzed.id} title={`${analyzed.title} 분석 이미지`} className="h-40 w-full rounded-lg border border-gray-200 md:w-56" />
+                  <ScenarioIllustration id={analyzed.id} imageSrc={customSelected ? uploadedPhoto?.src : undefined} title={`${analyzed.title} 분석 이미지`} className="h-40 w-full rounded-lg border border-gray-200 md:w-56" />
                   <div className="flex-1 mt-3 md:mt-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · 예시 시나리오</p>
+                      <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · {customSelected ? 'Teachable Machine 분석' : '예시 시나리오'}</p>
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${analyzed.isHeat ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
                         {analyzed.isHeat ? '🔥 열섬 우려' : '🌿 정상'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{analyzed.location} · {analyzed.desc} · 표시 수치는 가상 예시</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{analyzed.location} · {analyzed.desc} · {customSelected ? '모델 예측 확률이며 실제 온도를 측정하지 않습니다' : '표시 수치는 가상 예시'}</p>
                     <div className="space-y-2 mt-3">
                       {analyzed.probs.map((p, i) => (
                         <div key={p.className} className="flex items-center gap-2">
