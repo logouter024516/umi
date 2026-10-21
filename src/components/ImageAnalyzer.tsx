@@ -13,6 +13,7 @@ export default function ImageAnalyzer({ onAnalysisComplete }: ImageAnalyzerProps
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isHeatIsland, setIsHeatIsland] = useState<boolean | null>(null);
+  const [heatClass, setHeatClass] = useState<'hot' | 'cold' | 'unknown'>('unknown');
   const [analyzing, setAnalyzing] = useState(false);
   const [webcamActive, setWebcamActive] = useState(false);
 
@@ -24,10 +25,11 @@ export default function ImageAnalyzer({ onAnalysisComplete }: ImageAnalyzerProps
 
   const classify = useCallback((preds: Prediction[]) => {
     const top = preds.reduce((a, b) => (a.probability > b.probability ? a : b));
-    const isHeat = top.className.toLowerCase().includes('heat') ||
-      top.className.includes('열섬') ||
-      top.className.toLowerCase().includes('urban');
-    setIsHeatIsland(isHeat);
+    const normalized = top.className.trim().toLowerCase();
+    const isHot = /\\bhot\\b|heat|warm|더움|고온|열섬|urban/.test(normalized);
+    const isCold = /\\bcold\\b|cool|normal|추움|저온|냉/.test(normalized);
+    setIsHeatIsland(isHot);
+    setHeatClass(isHot ? 'hot' : isCold ? 'cold' : 'unknown');
     const label = `${top.className} (${(top.probability * 100).toFixed(0)}%)`;
     setPredictions(preds);
     onAnalysisComplete(label);
@@ -227,8 +229,12 @@ export default function ImageAnalyzer({ onAnalysisComplete }: ImageAnalyzerProps
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-bold text-gray-700 uppercase">분석 결과</h3>
             {isHeatIsland !== null && (
-              <span className={`text-xs px-2 py-0.5 rounded ${isHeatIsland ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
-                {isHeatIsland ? '열섬 우려' : '정상'}
+              <span className={`text-xs px-2 py-0.5 rounded border ${
+                heatClass === 'hot' ? 'bg-red-50 text-red-600 border-red-200'
+                  : heatClass === 'cold' ? 'bg-sky-50 text-sky-700 border-sky-200'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
+              }`}>
+                {heatClass === 'hot' ? '🔥 HOT · 더움' : heatClass === 'cold' ? '❄️ COLD · 추움' : `분류: ${predictions[0]?.className ?? '확인 필요'}`}
               </span>
             )}
           </div>
