@@ -446,16 +446,16 @@ ${selected.probs.map((prediction) => `- ${prediction.className}: ${(prediction.p
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <p className="text-sm font-extrabold text-gray-900">{analyzed.title} · {customSelected ? 'Teachable Machine 분석' : '예시 시나리오'}</p>
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${customSelected
-                        ? selected.heatClass === 'hot'
+                        ? classifyHeatLabel(uploadTop?.className ?? '') === 'hot'
                           ? 'bg-red-50 text-red-600 border-red-200'
-                          : selected.heatClass === 'cold'
+                          : classifyHeatLabel(uploadTop?.className ?? '') === 'cold'
                             ? 'bg-sky-50 text-sky-700 border-sky-200'
                             : 'bg-slate-50 text-slate-700 border-slate-200'
                         : analyzed.isHeat ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
                         {customSelected
-                          ? selected.heatClass === 'hot'
+                          ? classifyHeatLabel(uploadTop?.className ?? '') === 'hot'
                             ? '🔥 HOT · 더움'
-                            : selected.heatClass === 'cold'
+                            : classifyHeatLabel(uploadTop?.className ?? '') === 'cold'
                               ? '❄️ COLD · 추움'
                               : `모델 분류: ${uploadTop?.className ?? '확인 필요'}`
                           : analyzed.isHeat ? '🔥 열섬 우려' : '🌿 정상'}
